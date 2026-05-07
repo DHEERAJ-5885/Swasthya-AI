@@ -1,0 +1,43 @@
+const express = require('express');
+const router = express.Router();
+const Patient = require('../models/Patient');
+const Screening = require('../models/Screening');
+const { OpenAI } = require('openai');
+
+router.get('/:familyId', async (req, res) => {
+  try {
+    const { familyId } = req.params;
+    const patients = await Patient.find({ familyId });
+    
+    // Fetch latest screening for each
+    const membersWithData = await Promise.all(patients.map(async (p) => {
+      const screening = await Screening.findOne({ patientId: p._id }).sort({ createdAt: -1 });
+      return {
+        ...p.toObject(),
+        latestScreening: screening ? screening.result : null
+      };
+    }));
+
+    // Generate quick AI insight for the family
+    let insight = "Monitor family health regularly.";
+    let riskLevel = "Low";
+    
+    const highRiskCount = membersWithData.filter(m => m.latestScreening && m.latestScreening.riskLevel === 'High').length;
+    const mediumRiskCount = membersWithData.filter(m => m.latestScreening && m.latestScreening.riskLevel === 'Medium').length;
+
+    if (highRiskCount > 0) {
+      riskLevel = "High";
+      insight = `${highRiskCount} member(s) at high risk. Urgent family-level intervention recommended.`;
+    } else if (mediumRiskCount > 0) {
+      riskLevel = "Medium";
+      insight = `${mediumRiskCount} member(s) showing moderate risk. Ensure proper nutrition and rest.`;
+    }
+
+    res.json({ familyId, riskLevel, insight, members: membersWithData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch family data' });
+  }
+});
+
+module.exports = router;

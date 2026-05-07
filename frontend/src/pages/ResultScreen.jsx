@@ -1,0 +1,138 @@
+import React from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
+import { FileText, Activity, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
+
+export default function ResultScreen() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const result = location.state?.result || {
+    riskLevel: 'HIGH',
+    confidence: 87,
+    reason: 'Poor sleep, low appetite and high stress levels have increased the health risk.',
+    nextAction: 'Refer to Medical Officer\nFollow-up in 3 days',
+    drift: ['Sleep worsened (Good → Poor)', 'Appetite worsened (Normal → Low)', 'Weakness appeared'],
+    trend: 'Critical Drift',
+    explanation: 'CRITICAL: Patient shows rapid health deterioration across multiple vital and lifestyle markers.'
+  };
+
+  const isHighRisk = result.riskLevel.toUpperCase() === 'HIGH';
+  const riskColor = isHighRisk ? 'bg-[#EF4444]' : (result.riskLevel.toUpperCase() === 'MEDIUM' ? 'bg-[#F59E0B]' : 'bg-[#22C55E]');
+  const lightColor = isHighRisk ? 'bg-red-50 text-red-600' : (result.riskLevel.toUpperCase() === 'MEDIUM' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600');
+
+  const getTrendIcon = () => {
+    if (result.trend === 'Critical Drift' || result.trend === 'Declining') return <TrendingDown className="w-5 h-5 text-red-500" />;
+    if (result.trend === 'Improving') return <TrendingUp className="w-5 h-5 text-green-500" />;
+    return <Activity className="w-5 h-5 text-blue-500" />;
+  };
+
+  const getTrendColor = () => {
+    if (result.trend === 'Critical Drift') return 'bg-red-100 text-red-700 border-red-200';
+    if (result.trend === 'Declining') return 'bg-orange-100 text-orange-700 border-orange-200';
+    if (result.trend === 'Improving') return 'bg-green-100 text-green-700 border-green-200';
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <div className="px-6 py-5 sticky top-0 bg-slate-50 z-10 text-center">
+        <h1 className="text-base font-bold text-slate-900">Health Intelligence Result</h1>
+      </div>
+
+      <div className="px-6 pt-2 space-y-5">
+        {/* Risk Level & Confidence Headers */}
+        <div className="flex justify-between items-end gap-3 bg-white p-4 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
+          <div className="flex-1 text-center">
+            <h2 className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1">Risk Level</h2>
+            <div className={`${riskColor} text-white font-black text-xl py-2 rounded-xl shadow-sm`}>
+              {result.riskLevel.toUpperCase()}
+            </div>
+          </div>
+          <div className="w-[1px] h-12 bg-slate-100"></div>
+          <div className="flex-1 text-center">
+            <h2 className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1">AI Confidence</h2>
+            <div className={`font-black text-xl py-2 rounded-xl ${lightColor}`}>
+              {result.confidence}%
+            </div>
+          </div>
+        </div>
+
+        {/* Drift Analyzer */}
+        {result.trend !== 'No Data' && (
+          <div className="bg-white p-5 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-primary" /> Drift Detector
+              </h3>
+              <div className={`px-2 py-1 rounded-md border text-[10px] font-bold flex items-center gap-1 ${getTrendColor()}`}>
+                {getTrendIcon()} {result.trend.toUpperCase()}
+              </div>
+            </div>
+            
+            <p className="text-xs text-slate-600 mb-4 italic">
+              "{result.explanation}"
+            </p>
+
+            {result.drift && result.drift.length > 0 && (
+              <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">What Changed:</h4>
+                <ul className="space-y-2">
+                  {result.drift.map((item, i) => {
+                    const isWorse = item.toLowerCase().includes('worsened') || item.toLowerCase().includes('decreased') || item.toLowerCase().includes('appeared');
+                    return (
+                      <li key={i} className="flex items-start gap-2 text-xs font-semibold">
+                        <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${isWorse ? 'bg-red-500' : 'bg-green-500'}`}></span>
+                        <span className={isWorse ? 'text-slate-800' : 'text-slate-700'}>{item}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* AI Insight Summary */}
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 mb-2 px-1">AI Symptom Extraction</h3>
+          <div className="bg-white p-4 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100">
+            <p className="text-slate-700 text-sm leading-relaxed">
+              {result.reason}
+            </p>
+          </div>
+        </div>
+
+        {/* Recommended Action */}
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 mb-2 px-1">Next Best Action</h3>
+          <div className={`${lightColor} p-4 rounded-2xl flex items-start gap-3 border ${isHighRisk ? 'border-red-200' : 'border-orange-200'}`}>
+            <div className={`${isHighRisk ? 'bg-red-100 text-red-600' : 'bg-white/50 text-orange-600'} p-2 rounded-xl shrink-0`}>
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <p className="text-sm font-bold whitespace-pre-line leading-relaxed capitalize">
+              {result.nextAction}
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="pt-4 space-y-3">
+          <Button 
+            className="w-full h-12 text-sm font-semibold shadow-lg shadow-primary/30 rounded-xl"
+            onClick={() => navigate(`/patients/${id}/schedule-follow-up`)}
+          >
+            Schedule Follow-up
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full h-12 text-sm font-semibold text-slate-700 border-slate-200 rounded-xl hover:bg-slate-100"
+            onClick={() => navigate('/')}
+          >
+            Done & Save to Profile
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
