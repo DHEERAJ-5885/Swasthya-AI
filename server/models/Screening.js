@@ -46,6 +46,12 @@ const screeningSchema = new mongoose.Schema({
     drift: [String],
     trend: { type: String, enum: ['Improving', 'Stable', 'Declining', 'Critical Drift', 'No Data'] },
     explanation: String,
+    driftScore: Number,
+    driftStatus: { type: String, enum: ['Stable', 'Improving', 'Declining', 'Critical Drift'] },
+    trendDirection: { type: String, enum: ['Improving', 'Stable', 'Declining', 'Critical Drift'] },
+    previousComparison: [String],
+    aiExplanation: String,
+    followUpRecommendation: String,
     previousData: Object,
     currentData: Object
   },

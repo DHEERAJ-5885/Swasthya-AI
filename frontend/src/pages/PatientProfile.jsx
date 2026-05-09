@@ -26,7 +26,8 @@ export default function PatientProfile() {
         date: new Date(s.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
         risk: s.result.riskLevel,
         score: s.result.confidence,
-        drift: s.result.trend
+        drift: s.result.trendDirection || s.result.trend || 'Stable',
+        result: s.result
       }));
       setScreenings(formattedScreenings);
     }).catch(err => {
@@ -41,8 +42,79 @@ export default function PatientProfile() {
   // Calculate dynamic drift message based on mock screenings
   const currentScore = screenings[screenings.length - 1]?.score || 0;
   const previousScore = screenings[screenings.length - 2]?.score || 0;
-  const driftDirection = currentScore > previousScore ? 'increased' : (currentScore < previousScore ? 'decreased' : 'stable');
+  
+  // Use AI drift direction if available, otherwise fallback to score math
+  const latestResult = screenings[screenings.length - 1]?.result || {};
+  let driftDirection = 'stable';
+  if (['Declining', 'Critical Drift'].includes(latestResult.trendDirection || latestResult.trend)) {
+    driftDirection = 'increased';
+  } else if (['Improving'].includes(latestResult.trendDirection || latestResult.trend)) {
+    driftDirection = 'decreased';
+  } else if (currentScore > previousScore) {
+    driftDirection = 'increased';
+  } else if (currentScore < previousScore) {
+    driftDirection = 'decreased';
+  }
+
   const riskClass = driftDirection === 'increased' ? 'text-red-500' : (driftDirection === 'decreased' ? 'text-green-500' : 'text-slate-500');
+
+  const renderDynamicChart = () => {
+    if (!screenings || screenings.length === 0) return <div className="text-center text-xs text-slate-400 py-10">No data available</div>;
+    
+    const maxW = 300;
+    const maxH = 100;
+    
+    const points = screenings.map((s, i) => {
+      const x = screenings.length === 1 ? maxW / 2 : (i / (screenings.length - 1)) * maxW;
+      const y = maxH - (s.score || 0); 
+      return { x, y, date: s.date };
+    });
+    
+    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
+    const areaD = `${pathD} L ${points[points.length - 1].x},${maxH} L ${points[0].x},${maxH} Z`;
+
+    const chartColor = driftDirection === 'increased' ? '#ef4444' : (driftDirection === 'decreased' ? '#22c55e' : '#3b82f6');
+    const colorClass = driftDirection === 'increased' ? 'bg-red-500' : (driftDirection === 'decreased' ? 'bg-green-500' : 'bg-blue-500');
+
+    return (
+      <div className="relative h-24 w-full mt-8 mb-6">
+        <div className="absolute w-full border-b border-slate-100 top-0"></div>
+        <div className="absolute w-full border-b border-slate-100 top-1/2"></div>
+        <div className="absolute w-full border-b border-slate-100 bottom-0"></div>
+        
+        <svg className="absolute inset-0 h-full w-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 300 100">
+          <path d={pathD} fill="none" stroke={chartColor} strokeWidth="2" />
+          <path d={areaD} fill="url(#chartGradient)" opacity="0.1" />
+          <defs>
+            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={chartColor} />
+              <stop offset="100%" stopColor="#ffffff" />
+            </linearGradient>
+          </defs>
+        </svg>
+        
+        {points.map((p, i) => (
+          <div 
+            key={i} 
+            className={`absolute w-2 h-2 rounded-full border-2 border-white -translate-x-1/2 -translate-y-1/2 ${colorClass}`} 
+            style={{ left: `${(p.x / maxW) * 100}%`, top: `${(p.y / maxH) * 100}%` }}
+          />
+        ))}
+        
+        <div className="absolute w-full top-[110px]">
+          {points.map((p, i) => {
+             // Only show up to 4 dates to avoid crowding
+             if (screenings.length > 4 && i % Math.ceil(screenings.length / 3) !== 0 && i !== screenings.length - 1) return null;
+             return (
+              <span key={i} className="text-[8px] text-slate-400 font-medium absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${(p.x / maxW) * 100}%` }}>
+                {p.date}
+              </span>
+             );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -121,38 +193,7 @@ export default function PatientProfile() {
                   </span>
                 </div>
                 
-                {/* Visual Line Chart CSS Mock */}
-                <div className="relative h-24 w-full mt-8">
-                  <div className="absolute w-full border-b border-slate-100 top-0"></div>
-                  <div className="absolute w-full border-b border-slate-100 top-1/2"></div>
-                  <div className="absolute w-full border-b border-slate-100 bottom-0"></div>
-                  
-                  <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
-                    <path d="M 0,80 L 50,75 L 100,70 L 150,50 L 200,60 L 250,20 L 300,10" fill="none" stroke="#ef4444" strokeWidth="2" />
-                    <path d="M 0,80 L 50,75 L 100,70 L 150,50 L 200,60 L 250,20 L 300,10 L 300,96 L 0,96 Z" fill="url(#redGradient)" opacity="0.1" />
-                    <defs>
-                      <linearGradient id="redGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" />
-                        <stop offset="100%" stopColor="#ffffff" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  
-                  <div className="absolute w-2 h-2 bg-red-500 rounded-full top-[80px] left-[0%] -translate-x-1/2 -translate-y-1/2 border-2 border-white"></div>
-                  <div className="absolute w-2 h-2 bg-red-500 rounded-full top-[75px] left-[16.6%] -translate-x-1/2 -translate-y-1/2 border-2 border-white"></div>
-                  <div className="absolute w-2 h-2 bg-red-500 rounded-full top-[70px] left-[33.3%] -translate-x-1/2 -translate-y-1/2 border-2 border-white"></div>
-                  <div className="absolute w-2 h-2 bg-red-500 rounded-full top-[50px] left-[50%] -translate-x-1/2 -translate-y-1/2 border-2 border-white"></div>
-                  <div className="absolute w-2 h-2 bg-red-500 rounded-full top-[60px] left-[66.6%] -translate-x-1/2 -translate-y-1/2 border-2 border-white"></div>
-                  <div className="absolute w-2 h-2 bg-red-500 rounded-full top-[20px] left-[83.3%] -translate-x-1/2 -translate-y-1/2 border-2 border-white"></div>
-                  <div className="absolute w-3 h-3 bg-red-500 rounded-full top-[10px] left-[100%] -translate-x-1/2 -translate-y-1/2 border-2 border-red-200"></div>
-                </div>
-                
-                <div className="flex justify-between text-[8px] text-slate-400 mt-2 font-medium px-1">
-                  <span>10 Apr</span>
-                  <span>20 Apr</span>
-                  <span>30 Apr</span>
-                  <span>12 May</span>
-                </div>
+                {renderDynamicChart()}
               </CardContent>
             </Card>
 
@@ -160,31 +201,31 @@ export default function PatientProfile() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-medium">Emotional Trend</p>
-                  <p className="text-xs font-bold text-red-500">Declining</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Drift Status</p>
+                  <p className={`text-xs font-bold ${latestResult.driftStatus === 'Declining' || latestResult.driftStatus === 'Critical Drift' ? 'text-red-500' : 'text-slate-600'}`}>{latestResult.driftStatus || 'Stable'}</p>
                 </div>
-                <TrendingDown className="w-4 h-4 text-red-400" />
+                {latestResult.driftStatus === 'Declining' || latestResult.driftStatus === 'Critical Drift' ? <TrendingDown className="w-4 h-4 text-red-400" /> : <Minus className="w-4 h-4 text-slate-400" />}
               </div>
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] text-slate-500 font-medium">Sleep Trend</p>
-                  <p className="text-xs font-bold text-red-500">Poor</p>
+                  <p className="text-xs font-bold text-slate-600">{latestResult.currentData?.sleep || 'Unknown'}</p>
                 </div>
-                <TrendingDown className="w-4 h-4 text-red-400" />
+                <Minus className="w-4 h-4 text-slate-400" />
               </div>
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] text-slate-500 font-medium">Appetite Trend</p>
-                  <p className="text-xs font-bold text-red-500">Low</p>
+                  <p className="text-xs font-bold text-slate-600">{latestResult.currentData?.appetite || 'Unknown'}</p>
                 </div>
-                <TrendingDown className="w-4 h-4 text-red-400" />
+                <Minus className="w-4 h-4 text-slate-400" />
               </div>
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-medium">Vitals</p>
-                  <p className="text-xs font-bold text-slate-600">Stable</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Action Needed</p>
+                  <p className="text-[10px] font-bold text-red-500 truncate w-16">{latestResult.nextAction || 'Monitor'}</p>
                 </div>
-                <Minus className="w-4 h-4 text-slate-400" />
+                <TrendingDown className="w-4 h-4 text-red-400" />
               </div>
             </div>
           </div>

@@ -111,7 +111,7 @@ export default function ResultScreen() {
               <AlertTriangle className="w-5 h-5" />
             </div>
             <p className="text-sm font-bold whitespace-pre-line leading-relaxed capitalize">
-              {result.nextAction}
+              {result.followUpRecommendation || result.nextAction}
             </p>
           </div>
         </div>

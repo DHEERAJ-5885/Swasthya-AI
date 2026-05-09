@@ -15,7 +15,7 @@ const extractSymptomsFromVoice = (voiceNotes) => {
   return symptoms;
 };
 
-const analyzePatientData = async (data) => {
+const analyzePatientData = async (data, previousData = null) => {
   const { 
     fever, bp, sugar, pulse, oxygen, temperature,
     sleep, appetite, energy, stress, waterIntake, workFatigue,
@@ -26,19 +26,38 @@ const analyzePatientData = async (data) => {
   
   data.extractedSymptoms = extractSymptomsFromVoice(voiceNotes);
 
-  const prompt = `
+  let prompt = `
     Analyze this comprehensive patient data for an ASHA worker in rural India:
     Vitals: Fever: ${fever}, BP: ${bp}, Sugar: ${sugar}, Pulse: ${pulse}, O2: ${oxygen}, Temp: ${temperature}
     Lifestyle: Sleep: ${sleep}, Appetite: ${appetite}, Energy: ${energy}, Stress: ${stress}, Water: ${waterIntake}, Work Fatigue: ${workFatigue}
     Mental: Sadness: ${sadness}, Anxiety: ${anxiety}, Loneliness: ${loneliness}, Emotional Stress: ${emotionalStress}, Overthinking: ${overthinking}
     Observation: Swelling: ${swelling}, Pale Skin: ${paleSkin}, Fatigue: ${fatigue}, Cough: ${cough}, Weakness: ${weakness}, Discomfort: ${visibleDiscomfort}
     Voice Notes Transcribed: "${voiceNotes}" (Extracted: ${data.extractedSymptoms.join(', ')})
+  `;
+
+  if (previousData) {
+    prompt += `
     
-    Return a JSON response with:
+    HISTORICAL DATA (for comparison):
+    Vitals: Fever: ${previousData.fever}, BP: ${previousData.bp}, Sugar: ${previousData.sugar}, Pulse: ${previousData.pulse}, O2: ${previousData.oxygen}, Temp: ${previousData.temperature}
+    Lifestyle: Sleep: ${previousData.sleep}, Appetite: ${previousData.appetite}, Energy: ${previousData.energy}, Stress: ${previousData.stress}, Water: ${previousData.waterIntake}, Work Fatigue: ${previousData.workFatigue}
+    Mental: Sadness: ${previousData.sadness}, Anxiety: ${previousData.anxiety}, Loneliness: ${previousData.loneliness}, Emotional Stress: ${previousData.emotionalStress}, Overthinking: ${previousData.overthinking}
+    Observation: Swelling: ${previousData.swelling}, Pale Skin: ${previousData.paleSkin}, Fatigue: ${previousData.fatigue}, Cough: ${previousData.cough}, Weakness: ${previousData.weakness}, Discomfort: ${previousData.visibleDiscomfort}
+    `;
+  }
+
+  prompt += `
+    
+    Return a JSON response with the following exact keys:
     - riskLevel: "Low", "Medium", or "High"
     - confidence: number between 0 and 100
     - reason: brief explanation of the most critical issues detected
     - nextAction: Must be exactly one of: "revisit in 3 days", "refer immediately", "monitor weekly", "home care sufficient"
+    - driftStatus: "Stable", "Improving", "Declining", or "Critical Drift" (compare current to historical if available, otherwise 'No Data')
+    - trendDirection: "Improving", "Stable", "Declining", or "Critical Drift"
+    - previousComparison: Array of strings describing what specifically worsened or improved (e.g., ["Sleep worsened (Good -> Poor)"]). Empty if no previous data.
+    - aiExplanation: Detailed paragraph explaining why the drift happened and what behavioral changes lead to this risk level.
+    - followUpRecommendation: Short suggestion for when to follow up next based on this drift (e.g., "Urgent doctor referral required").
   `;
 
   const openaiKey = process.env.OPENAI_API_KEY?.trim();
@@ -73,10 +92,10 @@ const analyzePatientData = async (data) => {
     }
   }
 
-  return ruleBasedFallback(data);
+  return ruleBasedFallback(data, previousData);
 };
 
-const ruleBasedFallback = (data) => {
+const ruleBasedFallback = (data, previousData) => {
   let score = 0;
   let reason = [];
   
@@ -114,11 +133,41 @@ const ruleBasedFallback = (data) => {
     nextAction = 'monitor weekly';
   }
 
+  let driftStatus = 'Stable';
+  let trendDirection = 'Stable';
+  let aiExplanation = 'Health trend is stable. Continue monitoring.';
+  let previousComparison = [];
+
+  if (previousData) {
+     // Basic fallback drift detection
+     if (data.sleep === 'poor' && previousData.sleep === 'good') {
+        previousComparison.push('Sleep worsened (Good -> Poor)');
+        driftStatus = 'Declining';
+     }
+     if (data.fever === 'high' && previousData.fever === 'none') {
+        previousComparison.push('Fever appeared');
+        driftStatus = 'Declining';
+     }
+     if (previousComparison.length > 1) {
+        trendDirection = 'Declining';
+        aiExplanation = 'Patient behavior and symptoms show a decline compared to previous visit.';
+     }
+  } else {
+     driftStatus = 'No Data';
+     trendDirection = 'No Data';
+     aiExplanation = 'First screening. No historical data to compare.';
+  }
+
   return {
     riskLevel,
     confidence: Math.min(100, 60 + score * 5),
     reason: reason.length > 0 ? `Issues detected: ${reason.slice(0,3).join(', ')}` : 'Patient appears healthy.',
-    nextAction
+    nextAction,
+    driftStatus,
+    trendDirection,
+    previousComparison,
+    aiExplanation,
+    followUpRecommendation: nextAction
   };
 };
 

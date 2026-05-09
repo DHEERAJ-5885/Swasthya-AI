@@ -14,6 +14,10 @@ const getDashboardStats = async (req, res) => {
     ]);
     
     const highRiskPatients = latestScreenings.filter(s => s.latestScreening.result?.riskLevel === 'High').length;
+    const decliningDriftPatients = latestScreenings.filter(s => 
+      ['Declining', 'Critical Drift'].includes(s.latestScreening.result?.trendDirection) || 
+      ['Declining', 'Critical Drift'].includes(s.latestScreening.result?.trend)
+    ).length;
     
     // Follow ups due today
     const startOfDay = new Date();
@@ -38,6 +42,7 @@ const getDashboardStats = async (req, res) => {
     res.json({
       totalPatients,
       highRiskPatients,
+      decliningDriftPatients,
       followUpsToday,
       pendingAlerts,
       communityRisk

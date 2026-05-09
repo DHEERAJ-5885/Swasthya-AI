@@ -84,33 +84,50 @@ export default function Dashboard() {
       </div>
 
       <div className="px-6 -mt-4 relative z-20 space-y-5">
-        {/* Top 3 Metric Cards */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* Top Metric Cards */}
+        <div className="grid grid-cols-2 gap-3">
           <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl">
-            <CardContent className="p-3 flex flex-col items-center justify-center text-center h-full gap-1">
-              <div className="bg-primary/10 p-2 rounded-xl mb-1">
-                <Users className="w-5 h-5 text-primary" />
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="bg-primary/10 p-3 rounded-xl shrink-0">
+                <Users className="w-6 h-6 text-primary" />
               </div>
-              <p className="text-lg font-bold text-slate-900 leading-none">{data.totalPatients}</p>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">Total Patients</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl">
-            <CardContent className="p-3 flex flex-col items-center justify-center text-center h-full gap-1">
-              <div className="bg-red-50 p-2 rounded-xl mb-1">
-                <ShieldAlert className="w-5 h-5 text-red-500" />
+              <div>
+                <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.totalPatients}</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Total Patients</p>
               </div>
-              <p className="text-lg font-bold text-slate-900 leading-none">{data.highRiskPatients}</p>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">High Risk</p>
             </CardContent>
           </Card>
           <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl cursor-pointer hover:border-primary/50" onClick={() => navigate('/follow-ups')}>
-            <CardContent className="p-3 flex flex-col items-center justify-center text-center h-full gap-1">
-              <div className="bg-orange-50 p-2 rounded-xl mb-1">
-                <Calendar className="w-5 h-5 text-orange-500" />
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="bg-orange-50 p-3 rounded-xl shrink-0">
+                <Calendar className="w-6 h-6 text-orange-500" />
               </div>
-              <p className="text-lg font-bold text-slate-900 leading-none">{data.followUpsToday}</p>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">Due Today</p>
+              <div>
+                <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.followUpsToday}</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Due Today</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="bg-red-50 p-3 rounded-xl shrink-0">
+                <ShieldAlert className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.highRiskPatients}</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">High Risk</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl cursor-pointer hover:border-red-500/50">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="bg-purple-50 p-3 rounded-xl shrink-0">
+                <Activity className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.decliningDriftPatients || 0}</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Declining Drift</p>
+              </div>
             </CardContent>
           </Card>
         </div>
