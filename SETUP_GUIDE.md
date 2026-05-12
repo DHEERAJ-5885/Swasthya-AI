@@ -61,7 +61,8 @@ Frontend runs on `http://localhost:5173`
 
 ### Server (.env)
 ```
-MONGO_URI=mongodb+srv://dheerajmasetty2_db_user:R8aJRCquFTz5Fb1l@clusterhunt.4in7j9j.mongodb.net/swasthya-ai?appName=ClusterHunt
+MONGO_URI=
+swasthya-ai?appName=ClusterHunt
 PORT=5000
 GROQ_API_KEY=
 OPENAI_API_KEY=optional
