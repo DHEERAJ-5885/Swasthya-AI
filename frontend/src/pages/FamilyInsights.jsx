@@ -7,18 +7,45 @@ export default function FamilyInsights() {
   const navigate = useNavigate();
   const [familyData, setFamilyData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [familyIds, setFamilyIds] = useState([]);
+  const [selectedFamilyId, setSelectedFamilyId] = useState('');
 
   useEffect(() => {
-    // In a real app, familyId would come from context or route params. We hardcode a demo one here or fetch all patients and pick one.
-    // For demo, we just fetch a fixed ID. The backend handles it if no data is found (returns empty).
-    api.get('/family/FAM-1023').then(res => {
-      setFamilyData(res.data);
-      setLoading(false);
-    }).catch(err => {
-      console.error(err);
-      setLoading(false);
-    });
+    const loadFamilies = async () => {
+      try {
+        const res = await api.get('/patients');
+        const ids = Array.from(new Set(res.data.map(p => p.familyId).filter(Boolean)));
+        setFamilyIds(ids);
+        if (ids.length > 0) {
+          setSelectedFamilyId(ids[0]);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFamilies();
   }, []);
+
+  useEffect(() => {
+    const fetchFamily = async () => {
+      if (!selectedFamilyId) {
+        setFamilyData(null);
+        return;
+      }
+      try {
+        const res = await api.get(`/family/${selectedFamilyId}`);
+        setFamilyData(res.data);
+      } catch (err) {
+        console.error(err);
+        setFamilyData(null);
+      }
+    };
+
+    fetchFamily();
+  }, [selectedFamilyId]);
 
   const riskColors = {
     High: 'text-red-500',
@@ -43,7 +70,7 @@ export default function FamilyInsights() {
           <h1 className="text-sm font-bold text-slate-900 mx-auto">Family Intelligence</h1>
         </div>
         <div className="p-6 text-center text-slate-500 mt-20">
-          No family members found with ID FAM-1023. Add patients to this family to see insights.
+          No family members found. Add patients with a Family ID to see insights.
         </div>
       </div>
     );
@@ -62,11 +89,23 @@ export default function FamilyInsights() {
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">Family ID: {familyData.familyId}</h1>
-        <div className="w-6"></div> {/* Spacer */}
+        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">Family Intelligence</h1>
+        <div className="w-6"></div>
       </div>
 
       <div className="px-6 pt-6 space-y-6">
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Family ID</label>
+          <select
+            value={selectedFamilyId}
+            onChange={(e) => setSelectedFamilyId(e.target.value)}
+            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-800"
+          >
+            {familyIds.map((id) => (
+              <option key={id} value={id}>{id}</option>
+            ))}
+          </select>
+        </div>
         {/* Insight Banner */}
         <div className={`${bannerBg} border rounded-2xl p-4 flex gap-4 items-center shadow-sm`}>
           <div>
@@ -91,11 +130,9 @@ export default function FamilyInsights() {
                   onClick={() => navigate(`/patients/${member._id}`)}
                 >
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={`https://i.pravatar.cc/150?u=${member._id}`} 
-                      alt={member.name} 
-                      className="w-10 h-10 rounded-full bg-slate-100 object-cover border-2 border-white shadow-sm" 
-                    />
+                    <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center text-xs font-bold text-slate-700">
+                      {member.name?.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
+                    </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">{member.name}</h3>
                       <p className="text-[10px] text-slate-500 font-medium">{member.age} Y, {member.gender}</p>

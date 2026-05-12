@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, Mic, Camera, ScanLine } from 'lucide-react';
@@ -10,12 +10,37 @@ export default function AddPatient() {
   const [formData, setFormData] = useState({
     name: '', phone: '', age: '', gender: 'Female', 
     village: '', familyId: '', occupation: '',
-    chronicConditions: '', pregnancyStatus: 'No', disabilityStatus: 'None'
+    chronicConditions: '', pregnancyStatus: 'No', disabilityStatus: 'None',
+    photoUrl: ''
   });
   const [loading, setLoading] = useState(false);
+  const photoInputRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error('Please enter patient name');
+      return;
+    }
+    if (!/^\d{10}$/.test(formData.phone)) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
+    if (!formData.age || formData.age < 0 || formData.age > 120) {
+      toast.error('Please enter a valid age (0-120)');
+      return;
+    }
+    if (!formData.village.trim()) {
+      toast.error('Please enter village name');
+      return;
+    }
+    if (!formData.familyId.trim()) {
+      toast.error('Please enter family ID');
+      return;
+    }
+
     setLoading(true);
     
     const payload = {
@@ -30,7 +55,8 @@ export default function AddPatient() {
       navigate(`/patients/${res.data._id}`);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to create patient. Please check connection.');
+      const errorMsg = err.response?.data?.error || 'Failed to create patient. Please check connection.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -47,15 +73,30 @@ export default function AddPatient() {
       </div>
 
       <div className="px-6 pt-4 pb-4 border-b border-slate-50 flex gap-3 justify-center">
-        <button type="button" onClick={() => toast('Voice input feature coming soon.')} className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-[10px] font-bold">
-          <Mic className="w-4 h-4" /> Voice Input
+        <button type="button" onClick={() => navigate('/patients')} className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-[10px] font-bold">
+          <Mic className="w-4 h-4" /> Voice Intake
         </button>
-        <button type="button" onClick={() => toast('Scanner feature coming soon.')} className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold">
+        <button type="button" onClick={() => navigate('/patients')} className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold">
           <ScanLine className="w-4 h-4" /> Scan Card
         </button>
-        <button type="button" onClick={() => toast('Camera feature coming soon.')} className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold">
-          <Camera className="w-4 h-4" /> Photo
+        <button type="button" onClick={() => photoInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold">
+          <Camera className="w-4 h-4" /> Upload Photo
         </button>
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              setFormData((prev) => ({ ...prev, photoUrl: reader.result }));
+            };
+            reader.readAsDataURL(file);
+          }}
+        />
       </div>
 
       <div className="px-6 pt-6">
@@ -71,6 +112,19 @@ export default function AddPatient() {
             <input type="tel" required className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900" 
               value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
           </div>
+
+          {formData.photoUrl && (
+            <div className="flex items-center gap-4">
+              <img src={formData.photoUrl} alt="Patient" className="w-16 h-16 rounded-full object-cover border border-slate-200" />
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, photoUrl: '' })}
+                className="text-xs font-semibold text-red-600"
+              >
+                Remove photo
+              </button>
+            </div>
+          )}
           
           <div className="grid grid-cols-2 gap-4">
             <div>

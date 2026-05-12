@@ -20,7 +20,7 @@ export default function BottomNav() {
   if (!showNav) return null;
 
   return (
-    <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 px-6 py-2 flex justify-between items-center z-40 pb-safe">
+    <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 bg-white border-t border-slate-200 px-6 py-2 flex justify-between items-center z-40 pb-safe">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.path || (item.path === '/patients' && location.pathname.startsWith('/patients') && location.pathname !== '/patients/add' && !location.pathname.includes('/screen') && !location.pathname.includes('/result'));

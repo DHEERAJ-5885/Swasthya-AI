@@ -8,6 +8,7 @@ export default function Alerts() {
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [severityFilter, setSeverityFilter] = useState('All');
 
   useEffect(() => {
     api.get('/alerts')
@@ -28,6 +29,16 @@ export default function Alerts() {
       case 'Missed': return { icon: Calendar, bg: 'bg-yellow-500', color: 'text-white' };
       case 'Insight': return { icon: ShieldCheck, bg: 'bg-green-500', color: 'text-white' };
       default: return { icon: BellRing, bg: 'bg-primary', color: 'text-white' };
+    }
+  };
+
+  const getSeverity = (type) => {
+    switch (type) {
+      case 'Emergency': return 'Critical';
+      case 'Outbreak': return 'High';
+      case 'Missed': return 'Medium';
+      case 'Insight': return 'Low';
+      default: return 'Low';
     }
   };
 
@@ -59,10 +70,24 @@ export default function Alerts() {
       </div>
 
       <div className="px-6 pt-6 space-y-4">
+        <div className="flex gap-2">
+          {['All', 'Critical', 'High', 'Medium', 'Low'].map((level) => (
+            <button
+              key={level}
+              onClick={() => setSeverityFilter(level)}
+              className={`px-3 py-1 rounded-full text-[10px] font-bold border ${severityFilter === level ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200'}`}
+            >
+              {level}
+            </button>
+          ))}
+        </div>
+
         {alerts.length === 0 ? (
           <div className="text-center p-6 text-slate-500">No new alerts.</div>
         ) : (
-          alerts.map(alert => {
+          alerts
+            .filter(alert => severityFilter === 'All' || getSeverity(alert.type) === severityFilter)
+            .map(alert => {
             const { icon: Icon, bg, color } = getIconData(alert.type);
             const timeAgo = new Date(alert.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             

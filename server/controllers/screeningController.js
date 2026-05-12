@@ -1,10 +1,18 @@
 const Screening = require('../models/Screening');
 const Alert = require('../models/Alert');
+const Patient = require('../models/Patient');
 const { analyzePatientData } = require('../services/aiEngine');
+const { createNotification } = require('./notificationController');
 
 const createScreening = async (req, res) => {
   try {
     const { patientId, data } = req.body;
+    const workerId = req.userId; // Use authenticated worker ID, not from body
+
+    const patient = await Patient.findOne({ _id: patientId, worker: workerId });
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
     
     // Fetch previous screening BEFORE analysis to send historical data to AI
     const previousScreening = await Screening.findOne({ patientId }).sort({ createdAt: -1 });
@@ -32,8 +40,8 @@ const createScreening = async (req, res) => {
     
     await screening.save();
 
-    // Auto-create Emergency Alert
-    if (finalResult.riskLevel === 'High' || finalResult.trendDirection === 'Critical Drift') {
+    // Auto-create Emergency Alert and Notification
+    if (['High', 'Critical'].includes(finalResult.riskLevel) || finalResult.trendDirection === 'Critical Drift') {
       const alert = new Alert({
         type: 'Emergency',
         title: 'Emergency Referral Required',
@@ -41,14 +49,26 @@ const createScreening = async (req, res) => {
         patientId: patientId
       });
       await alert.save();
+      
+      // Create notification for worker
+      if (workerId) {
+        await createNotification(
+          workerId,
+          patientId,
+          'emergency',
+          'Emergency Alert',
+          `High-risk patient detected. ${finalResult.aiExplanation || finalResult.reason}`,
+          'critical'
+        );
+      }
     }
 
     // Auto-create FollowUp for declining trends or high risk
-    if (['Declining', 'Critical Drift'].includes(finalResult.trendDirection) || finalResult.riskLevel === 'High') {
+    if (['Declining', 'Critical Drift'].includes(finalResult.trendDirection) || ['High', 'Critical'].includes(finalResult.riskLevel)) {
       const FollowUp = require('../models/FollowUp');
       
       let followUpDays = 3; // default
-      if (finalResult.trendDirection === 'Critical Drift' || finalResult.riskLevel === 'High') followUpDays = 1;
+      if (finalResult.trendDirection === 'Critical Drift' || ['High', 'Critical'].includes(finalResult.riskLevel)) followUpDays = 1;
       
       const followUpDate = new Date();
       followUpDate.setDate(followUpDate.getDate() + followUpDays);
@@ -60,6 +80,18 @@ const createScreening = async (req, res) => {
         status: 'Pending'
       });
       await followUp.save();
+      
+      // Create notification for follow-up needed
+      if (workerId) {
+        await createNotification(
+          workerId,
+          patientId,
+          'high_risk',
+          'Follow-up Required',
+          `Patient requires follow-up in ${followUpDays} day(s). Risk level: ${finalResult.riskLevel}`,
+          'high'
+        );
+      }
     }
     
     res.json({ success: true, result: finalResult, screeningId: screening._id });
@@ -71,6 +103,10 @@ const createScreening = async (req, res) => {
 
 const getScreenings = async (req, res) => {
   try {
+    const patient = await Patient.findOne({ _id: req.params.patientId, worker: req.userId });
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
     const screenings = await Screening.find({ patientId: req.params.patientId }).sort({ createdAt: 1 });
     res.json(screenings);
   } catch (err) {

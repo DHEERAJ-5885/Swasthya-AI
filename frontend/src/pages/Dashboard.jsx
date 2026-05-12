@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
-import { Menu, Bell, Users, ShieldAlert, Calendar, Plus, Stethoscope, Cloud, Activity, BrainCircuit, ScanLine, Mic, UsersRound, PhoneCall, Loader2 } from 'lucide-react';
+import { Users, ShieldAlert, Calendar, Plus, Stethoscope, Cloud, Activity, BrainCircuit, ScanLine, Mic, UsersRound, PhoneCall, Loader2 } from 'lucide-react';
+import NotificationPanel from '../components/NotificationPanel';
+import LanguageSelector from '../components/LanguageSelector';
 import toast from 'react-hot-toast';
 import api from '../api';
+import { useLanguage } from '../context/LanguageContext';
+import { t } from '../utils/i18n';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const user = JSON.parse(localStorage.getItem('user') || '{"name":"Anita Kumari", "village":"Rampur"}');
+  const user = JSON.parse(localStorage.getItem('worker') || '{"name":"ASHA Worker", "village":""}');
+  const { language } = useLanguage();
 
   useEffect(() => {
     // Online status listener
@@ -52,33 +57,30 @@ export default function Dashboard() {
       {/* Top App Bar & Header */}
       <div className="bg-primary px-6 pt-10 pb-6 rounded-b-[32px] text-white shadow-lg shadow-primary/20 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-6">
-          <button className="text-white hover:bg-white/10 p-2 rounded-full transition-colors">
-            <Menu className="w-6 h-6" />
-          </button>
+          <div className="w-10" />
           <div className="flex items-center gap-3">
             <div className={`px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[10px] font-bold ${isOnline ? 'bg-emerald-500/20 text-emerald-100' : 'bg-red-500/20 text-red-100'}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
-              {isOnline ? 'SYNCED' : 'OFFLINE'}
+              {isOnline ? t('synced', language) : t('offline', language)}
             </div>
-            <button className="relative hover:bg-white/10 p-2 rounded-full transition-colors" onClick={() => navigate('/alerts')}>
-              <Bell className="w-6 h-6" />
-              {data.pendingAlerts > 0 && (
-                <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-400 rounded-full border-2 border-primary"></span>
-              )}
-            </button>
+            <LanguageSelector
+              showLabel={false}
+              selectClassName="bg-white/95 text-slate-800 border-white/40"
+            />
+            <NotificationPanel />
           </div>
         </div>
 
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-white/80 text-sm font-medium mb-1">Namaste,</p>
-            <h1 className="text-2xl font-bold">{user.name}</h1>
+            <p className="text-white/80 text-sm font-medium mb-1">{t('namaste', language)}</p>
+            <h1 className="text-2xl font-bold">{user.name || 'ASHA Worker'}</h1>
           </div>
           <div className="text-right flex flex-col items-end">
             <div className="flex items-center gap-1.5 text-white/90 text-sm font-semibold mb-1">
               <Cloud className="w-4 h-4" /> 28°C
             </div>
-            <p className="text-xs text-white/70 font-medium">{user.village || 'Rampur'} Village</p>
+            <p className="text-xs text-white/70 font-medium">{user.village ? `${user.village} ${t('village', language)}` : t('villageNotSet', language)}</p>
           </div>
         </div>
       </div>
@@ -93,7 +95,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.totalPatients}</p>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Total Patients</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{t('totalPatients', language)}</p>
               </div>
             </CardContent>
           </Card>
@@ -104,7 +106,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.followUpsToday}</p>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Due Today</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{t('dueToday', language)}</p>
               </div>
             </CardContent>
           </Card>
@@ -115,18 +117,18 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.highRiskPatients}</p>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">High Risk</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{t('highRisk', language)}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl cursor-pointer hover:border-red-500/50">
+          <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl cursor-pointer hover:border-red-500/50" onClick={() => navigate('/alerts')}>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="bg-purple-50 p-3 rounded-xl shrink-0">
                 <Activity className="w-6 h-6 text-purple-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900 leading-none mb-1">{data.decliningDriftPatients || 0}</p>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Declining Drift</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{t('decliningDrift', language)}</p>
               </div>
             </CardContent>
           </Card>
@@ -139,17 +141,17 @@ export default function Dashboard() {
               <BrainCircuit className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-slate-900 mb-1">AI Health Summary</h3>
+              <h3 className="text-xs font-bold text-slate-900 mb-1">{t('aiHealthSummary', language)}</h3>
               <ul className="text-[11px] text-slate-700 font-medium space-y-1 list-disc pl-3">
-                <li><span className="text-orange-600 font-bold">{data.followUpsToday} patients</span> require follow-up today.</li>
+                <li><span className="text-orange-600 font-bold">{data.followUpsToday}</span> {t('patientsRequireFollowUp', language)}</li>
                 {data.pendingAlerts > 0 && (
-                  <li>There are <span className="text-red-500 font-bold">{data.pendingAlerts} unread alerts</span> needing attention.</li>
+                  <li>{t('unreadAlerts', language)} <span className="text-red-500 font-bold">{data.pendingAlerts}</span></li>
                 )}
                 {data.communityRisk === 'High' && (
-                  <li>Village health risk is currently <span className="text-red-500 font-bold">Critical</span>.</li>
+                  <li>{t('riskCritical', language)}</li>
                 )}
                 {data.communityRisk !== 'High' && (
-                  <li>Village health pulse is <span className="font-bold">{data.communityRisk}</span>.</li>
+                  <li>{t('riskPulseIs', language)} <span className="font-bold">{data.communityRisk}</span>.</li>
                 )}
               </ul>
             </div>
@@ -160,9 +162,9 @@ export default function Dashboard() {
         <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.03)] border-0 rounded-2xl cursor-pointer hover:border-primary/50" onClick={() => navigate('/community-risk')}>
           <CardContent className="p-5 flex flex-row items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-900 mb-1">Community Risk Pulse</p>
+              <p className="text-xs font-semibold text-slate-900 mb-1">{t('communityRiskPulse', language)}</p>
               <p className="text-xl font-bold text-orange-500 mb-1">{data.communityRisk}</p>
-              <p className="text-[10px] text-slate-500 font-medium">Village: {user.village || 'Rampur'}</p>
+              <p className="text-[10px] text-slate-500 font-medium">{t('village', language)}: {user.village || t('villageNotSet', language)}</p>
             </div>
             <div className="relative w-24 h-12 overflow-hidden flex-shrink-0">
               <div className="absolute top-0 left-0 w-24 h-24 rounded-full border-[10px] border-slate-100 border-t-orange-500 border-r-orange-500 rotate-45 box-border"></div>
@@ -174,43 +176,43 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div>
-          <h2 className="text-sm font-bold text-slate-900 mb-3">Quick Actions</h2>
+          <h2 className="text-sm font-bold text-slate-900 mb-3">{t('quickActions', language)}</h2>
           <div className="grid grid-cols-3 gap-3">
             <button onClick={() => navigate('/patients/add')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-[10px] font-bold text-slate-700 text-center">Add Patient</span>
+              <span className="text-[10px] font-bold text-slate-700 text-center">{t('addPatient', language)}</span>
             </button>
             <button onClick={() => navigate('/patients')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <div className="bg-emerald-50 w-12 h-12 rounded-xl flex items-center justify-center">
                 <Stethoscope className="w-5 h-5 text-emerald-600" />
               </div>
-              <span className="text-[10px] font-bold text-slate-700 text-center">Start Screening</span>
+              <span className="text-[10px] font-bold text-slate-700 text-center">{t('startScreening', language)}</span>
             </button>
             <button onClick={() => navigate('/patients')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <div className="bg-blue-50 w-12 h-12 rounded-xl flex items-center justify-center">
                 <ScanLine className="w-5 h-5 text-blue-600" />
               </div>
-              <span className="text-[10px] font-bold text-slate-700 text-center">Scan Health Card</span>
+              <span className="text-[10px] font-bold text-slate-700 text-center">{t('scanHealthCard', language)}</span>
             </button>
             <button onClick={() => navigate('/patients')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <div className="bg-purple-50 w-12 h-12 rounded-xl flex items-center justify-center">
                 <Mic className="w-5 h-5 text-purple-600" />
               </div>
-              <span className="text-[10px] font-bold text-slate-700 text-center">Voice Screening</span>
+              <span className="text-[10px] font-bold text-slate-700 text-center">{t('voiceScreening', language)}</span>
             </button>
-            <button onClick={() => toast.error('Emergency alert triggered!')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
+            <button onClick={() => navigate('/alerts')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <div className="bg-red-50 w-12 h-12 rounded-xl flex items-center justify-center">
                 <PhoneCall className="w-5 h-5 text-red-600" />
               </div>
-              <span className="text-[10px] font-bold text-slate-700 text-center">Emergency Alert</span>
+              <span className="text-[10px] font-bold text-slate-700 text-center">{t('emergencyAlert', language)}</span>
             </button>
             <button onClick={() => navigate('/family-insights')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <div className="bg-orange-50 w-12 h-12 rounded-xl flex items-center justify-center">
                 <UsersRound className="w-5 h-5 text-orange-600" />
               </div>
-              <span className="text-[10px] font-bold text-slate-700 text-center">Family Insights</span>
+              <span className="text-[10px] font-bold text-slate-700 text-center">{t('familyInsights', language)}</span>
             </button>
           </div>
         </div>

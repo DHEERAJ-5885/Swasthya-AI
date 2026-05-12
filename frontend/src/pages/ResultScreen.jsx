@@ -7,19 +7,25 @@ export default function ResultScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const result = location.state?.result || {
-    riskLevel: 'HIGH',
-    confidence: 87,
-    reason: 'Poor sleep, low appetite and high stress levels have increased the health risk.',
-    nextAction: 'Refer to Medical Officer\nFollow-up in 3 days',
-    drift: ['Sleep worsened (Good → Poor)', 'Appetite worsened (Normal → Low)', 'Weakness appeared'],
-    trend: 'Critical Drift',
-    explanation: 'CRITICAL: Patient shows rapid health deterioration across multiple vital and lifestyle markers.'
-  };
+  const result = location.state?.result || null;
 
-  const isHighRisk = result.riskLevel.toUpperCase() === 'HIGH';
-  const riskColor = isHighRisk ? 'bg-[#EF4444]' : (result.riskLevel.toUpperCase() === 'MEDIUM' ? 'bg-[#F59E0B]' : 'bg-[#22C55E]');
-  const lightColor = isHighRisk ? 'bg-red-50 text-red-600' : (result.riskLevel.toUpperCase() === 'MEDIUM' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600');
+  if (!result) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+        <div>
+          <p className="text-sm font-semibold text-slate-700 mb-3">No screening result found.</p>
+          <Button className="h-10 text-xs font-semibold rounded-xl" onClick={() => navigate(`/patients/${id}`)}>
+            Back to Patient
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const risk = result.riskLevel?.toUpperCase() || 'UNKNOWN';
+  const isHighRisk = risk === 'HIGH' || risk === 'CRITICAL';
+  const riskColor = risk === 'CRITICAL' ? 'bg-[#991B1B]' : (risk === 'HIGH' ? 'bg-[#EF4444]' : (risk === 'MEDIUM' ? 'bg-[#F59E0B]' : 'bg-[#22C55E]'));
+  const lightColor = risk === 'CRITICAL' ? 'bg-red-100 text-red-800' : (isHighRisk ? 'bg-red-50 text-red-600' : (risk === 'MEDIUM' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600'));
 
   const getTrendIcon = () => {
     if (result.trend === 'Critical Drift' || result.trend === 'Declining') return <TrendingDown className="w-5 h-5 text-red-500" />;
@@ -125,8 +131,8 @@ export default function ResultScreen() {
             Schedule Follow-up
           </Button>
           <Button 
-            variant="outline" 
-            className="w-full h-12 text-sm font-semibold text-slate-700 border-slate-200 rounded-xl hover:bg-slate-100"
+            variant="secondary" 
+            className="w-full h-12 text-sm font-semibold rounded-xl"
             onClick={() => navigate('/')}
           >
             Done & Save to Profile

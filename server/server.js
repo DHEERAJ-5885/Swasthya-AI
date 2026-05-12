@@ -2,7 +2,10 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./utils/db');
+const authMiddleware = require('./middleware/authMiddleware');
 
+const authRoutes = require('./routes/authRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const patientRoutes = require('./routes/patientRoutes');
 const screeningRoutes = require('./routes/screeningRoutes');
 const followUpRoutes = require('./routes/followUpRoutes');
@@ -19,15 +22,19 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api/patients', patientRoutes);
-app.use('/api/analyze', screeningRoutes);
-app.use('/api/followups', followUpRoutes);
-app.use('/api/family', familyRoutes);
-app.use('/api/community-risk', communityRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/alerts', alertRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+// Public Routes (No Auth Required)
+app.use('/api/auth', authRoutes);
+
+// Protected Routes (Auth Required)
+app.use('/api/notifications', authMiddleware, notificationRoutes);
+app.use('/api/patients', authMiddleware, patientRoutes);
+app.use('/api/analyze', authMiddleware, screeningRoutes);
+app.use('/api/followups', authMiddleware, followUpRoutes);
+app.use('/api/family', authMiddleware, familyRoutes);
+app.use('/api/community-risk', authMiddleware, communityRoutes);
+app.use('/api/chat', authMiddleware, chatRoutes);
+app.use('/api/alerts', authMiddleware, alertRoutes);
+app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api', analyticsRoutes);
 
 // Database connection with retry logic

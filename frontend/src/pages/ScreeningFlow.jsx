@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, Mic, MicOff, BrainCircuit } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../api';
 
 const steps = [
@@ -66,11 +67,14 @@ export default function ScreeningFlow() {
   const [formData, setFormData] = useState({
     sleep: 'Good', appetite: 'Normal', energy: 'Medium',
     stress: 'Low', fever: 'None', bp: 'Normal',
-    voiceNotes: ''
+    voiceNotes: '',
+    scanImage: ''
   });
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [previousScreening, setPreviousScreening] = useState(null);
   const recognitionRef = useRef(null);
+  const scanInputRef = useRef(null);
 
   useEffect(() => {
     // Initialize Web Speech API
@@ -98,6 +102,36 @@ export default function ScreeningFlow() {
       if (recognitionRef.current) recognitionRef.current.stop();
     };
   }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`screeningDraft:${id}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.formData) setFormData(parsed.formData);
+        if (typeof parsed.currentStep === 'number') setCurrentStep(parsed.currentStep);
+      } catch (err) {
+        console.error('Failed to load draft', err);
+      }
+    }
+  }, [id]);
+
+  useEffect(() => {
+    localStorage.setItem(`screeningDraft:${id}`, JSON.stringify({ formData, currentStep }));
+  }, [formData, currentStep, id]);
+
+  useEffect(() => {
+    const fetchPrevious = async () => {
+      try {
+        const res = await api.get(`/analyze/${id}`);
+        const last = res.data[res.data.length - 1];
+        setPreviousScreening(last || null);
+      } catch (err) {
+        console.error('Failed to load previous screening', err);
+      }
+    };
+    fetchPrevious();
+  }, [id]);
 
   const toggleListening = () => {
     if (isListening) {
@@ -131,25 +165,28 @@ export default function ScreeningFlow() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    const payload = { patientId: id, data: formData };
+    const worker = JSON.parse(localStorage.getItem('worker') || '{}');
+    const payload = { 
+      patientId: id, 
+      data: formData,
+      workerId: worker._id
+    };
     
-    setTimeout(async () => {
-      try {
-        const res = await api.post('/analyze', payload);
+    try {
+      const res = await api.post('/analyze', payload);
+      if (res.data && res.data.result) {
+        localStorage.removeItem(`screeningDraft:${id}`);
         navigate(`/patients/${id}/result`, { state: { result: res.data.result } });
-      } catch (err) {
-        console.error('API failed, falling back to mock', err);
-        const mockResult = {
-          riskLevel: 'High',
-          confidence: 87,
-          reason: 'Voice extracted: Weakness, Low Appetite.',
-          nextAction: 'refer immediately',
-          trend: 'Critical Drift',
-          drift: ['Sleep worsened (Good → Poor)', 'Appetite worsened (Normal → Low)', 'Weakness appeared']
-        };
-        navigate(`/patients/${id}/result`, { state: { result: mockResult } });
+      } else {
+        toast.error('Invalid response from server');
+        setLoading(false);
       }
-    }, 2500);
+    } catch (err) {
+      console.error('Screening submission failed:', err);
+      const errorMsg = err.response?.data?.error || 'Failed to analyze screening data';
+      toast.error(errorMsg);
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -184,6 +221,18 @@ export default function ScreeningFlow() {
       </div>
 
       <div className="px-6 pt-6 space-y-8">
+        {previousScreening && (
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Previous Screening</p>
+            <div className="flex items-center justify-between mt-2">
+              <div>
+                <p className="text-xs font-semibold text-slate-900">{previousScreening.result?.riskLevel || 'Unknown'} Risk</p>
+                <p className="text-[10px] text-slate-500">{new Date(previousScreening.createdAt).toLocaleDateString()}</p>
+              </div>
+              <p className="text-[10px] text-slate-500">{previousScreening.result?.trendDirection || previousScreening.result?.trend || 'Stable'}</p>
+            </div>
+          </div>
+        )}
         {step.type === 'voice' ? (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex flex-col items-center">
             
@@ -205,6 +254,33 @@ export default function ScreeningFlow() {
                 value={formData.voiceNotes}
                 onChange={(e) => setFormData({...formData, voiceNotes: e.target.value})}
               ></textarea>
+            </div>
+
+            <div className="w-full mt-6">
+              <label className="block text-sm font-semibold text-slate-900 mb-3">Scan Upload</label>
+              <div className="flex items-center gap-3">
+                <Button type="button" onClick={() => scanInputRef.current?.click()} className="h-10 rounded-xl text-xs font-semibold">
+                  Upload Scan
+                </Button>
+                {formData.scanImage && (
+                  <img src={formData.scanImage} alt="Scan" className="h-10 w-10 rounded-lg object-cover border border-slate-200" />
+                )}
+              </div>
+              <input
+                ref={scanInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    setFormData((prev) => ({ ...prev, scanImage: reader.result }));
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
             </div>
           </div>
         ) : (

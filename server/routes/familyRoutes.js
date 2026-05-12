@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Patient = require('../models/Patient');
 const Screening = require('../models/Screening');
-const { OpenAI } = require('openai');
+const authMiddleware = require('../middleware/authMiddleware');
 
-router.get('/:familyId', async (req, res) => {
+router.get('/:familyId', authMiddleware, async (req, res) => {
   try {
     const { familyId } = req.params;
-    const patients = await Patient.find({ familyId });
+    const patients = await Patient.find({ familyId, worker: req.userId });
     
     // Fetch latest screening for each
     const membersWithData = await Promise.all(patients.map(async (p) => {

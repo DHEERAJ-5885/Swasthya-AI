@@ -65,11 +65,17 @@ export default function PatientList() {
             onClick={() => navigate(`/patients/${patient._id}`)}
           >
             <div className="flex items-center gap-3">
-              <img 
-                src={patient.avatar || `https://i.pravatar.cc/150?u=${patient._id}`} 
-                alt={patient.name} 
-                className="w-12 h-12 rounded-full bg-slate-100 object-cover" 
-              />
+              {patient.photoUrl ? (
+                <img 
+                  src={patient.photoUrl}
+                  alt={patient.name}
+                  className="w-12 h-12 rounded-full bg-slate-100 object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-700">
+                  {patient.name?.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <div>
                 <h3 className="text-sm font-bold text-slate-900">{patient.name}</h3>
                 <p className="text-[10px] text-slate-500 font-medium">{patient.age} Years, {patient.gender || 'Female'}</p>

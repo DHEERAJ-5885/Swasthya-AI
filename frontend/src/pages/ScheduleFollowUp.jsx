@@ -15,14 +15,36 @@ export default function ScheduleFollowUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!date) {
+      toast.error('Please select a follow-up date');
+      return;
+    }
+    
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      toast.error('Follow-up date must be in the future');
+      return;
+    }
+    
     setLoading(true);
     try {
-      await api.post('/followups', { patientId: id, date, priority, notes });
+      await api.post('/followups', { 
+        patientId: id, 
+        date: new Date(date),
+        priority, 
+        notes 
+      });
       toast.success('Follow-up scheduled successfully!');
       navigate(`/patients/${id}`);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to schedule follow-up.');
+      const errorMsg = err.response?.data?.error || 'Failed to schedule follow-up.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

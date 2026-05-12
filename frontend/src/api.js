@@ -1,10 +1,38 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
 });
+
+// Request interceptor to add JWT token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// Response interceptor for global error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      // Unauthorized - clear session and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('worker');
+      window.location.href = '/login';
+    } else if (error.response?.status === 500) {
+      console.error('Server error:', error.response?.data);
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Simple offline queue mechanism
 export const saveOffline = (key, data) => {
@@ -29,6 +57,6 @@ export const syncOfflineData = async () => {
   }
 };
 
-window.addEventListener('online', syncOfflineData);
-
 export default api;
+
+window.addEventListener('online', syncOfflineData);

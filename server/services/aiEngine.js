@@ -49,7 +49,7 @@ const analyzePatientData = async (data, previousData = null) => {
   prompt += `
     
     Return a JSON response with the following exact keys:
-    - riskLevel: "Low", "Medium", or "High"
+    - riskLevel: "Low", "Medium", "High", or "Critical"
     - confidence: number between 0 and 100
     - reason: brief explanation of the most critical issues detected
     - nextAction: Must be exactly one of: "revisit in 3 days", "refer immediately", "monitor weekly", "home care sufficient"
@@ -122,7 +122,15 @@ const ruleBasedFallback = (data, previousData) => {
   let riskLevel = 'Low';
   let nextAction = 'home care sufficient';
 
-  if (score >= 8) {
+  const emergencyDetected =
+    data.fever?.toLowerCase() === 'high' &&
+    data.fatigue?.toLowerCase() === 'severe' &&
+    data.appetite?.toLowerCase() === 'low';
+
+  if (emergencyDetected) {
+    riskLevel = 'Critical';
+    nextAction = 'refer immediately';
+  } else if (score >= 8) {
     riskLevel = 'High';
     nextAction = 'refer immediately';
   } else if (score >= 5) {
@@ -138,7 +146,7 @@ const ruleBasedFallback = (data, previousData) => {
   let aiExplanation = 'Health trend is stable. Continue monitoring.';
   let previousComparison = [];
 
-  if (previousData) {
+    if (previousData) {
      // Basic fallback drift detection
      if (data.sleep === 'poor' && previousData.sleep === 'good') {
         previousComparison.push('Sleep worsened (Good -> Poor)');
@@ -148,6 +156,12 @@ const ruleBasedFallback = (data, previousData) => {
         previousComparison.push('Fever appeared');
         driftStatus = 'Declining';
      }
+      if (emergencyDetected) {
+        previousComparison.push('Emergency symptom cluster detected');
+        driftStatus = 'Critical Drift';
+        trendDirection = 'Critical Drift';
+        aiExplanation = 'Critical symptoms appeared with a sharp decline compared to previous visit.';
+      }
      if (previousComparison.length > 1) {
         trendDirection = 'Declining';
         aiExplanation = 'Patient behavior and symptoms show a decline compared to previous visit.';

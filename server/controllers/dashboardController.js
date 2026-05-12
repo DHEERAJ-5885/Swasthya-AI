@@ -5,15 +5,19 @@ const Alert = require('../models/Alert');
 
 const getDashboardStats = async (req, res) => {
   try {
-    const totalPatients = await Patient.countDocuments();
+    const patientIds = await Patient.find({ worker: req.userId }).distinct('_id');
+    const totalPatients = patientIds.length;
     
     // Calculate high risk patients from latest screenings
     const latestScreenings = await Screening.aggregate([
+      { $match: { patientId: { $in: patientIds } } },
       { $sort: { createdAt: -1 } },
       { $group: { _id: "$patientId", latestScreening: { $first: "$$ROOT" } } }
     ]);
     
-    const highRiskPatients = latestScreenings.filter(s => s.latestScreening.result?.riskLevel === 'High').length;
+    const highRiskPatients = latestScreenings.filter(s =>
+      ['High', 'Critical'].includes(s.latestScreening.result?.riskLevel)
+    ).length;
     const decliningDriftPatients = latestScreenings.filter(s => 
       ['Declining', 'Critical Drift'].includes(s.latestScreening.result?.trendDirection) || 
       ['Declining', 'Critical Drift'].includes(s.latestScreening.result?.trend)
@@ -26,11 +30,12 @@ const getDashboardStats = async (req, res) => {
     endOfDay.setHours(23, 59, 59, 999);
     
     const followUpsToday = await FollowUp.countDocuments({
+      patientId: { $in: patientIds },
       date: { $gte: startOfDay, $lte: endOfDay },
       status: 'Pending'
     });
 
-    const pendingAlerts = await Alert.countDocuments({ read: false });
+    const pendingAlerts = await Alert.countDocuments({ read: false, patientId: { $in: patientIds } });
 
     // Calculate community risk pulse simply
     let communityRisk = 'Low';

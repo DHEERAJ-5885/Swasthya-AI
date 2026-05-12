@@ -5,35 +5,61 @@ const Screening = require('../models/Screening');
 
 router.get('/', async (req, res) => {
   try {
-    const patients = await Patient.find();
-    const screenings = await Screening.find().populate('patientId', 'village');
+    const patients = await Patient.find({ worker: req.userId }).select('_id village').lean();
+    const patientMap = new Map(patients.map((p) => [String(p._id), p]));
+    const patientIds = patients.map((p) => p._id);
+
+    if (!patientIds.length) {
+      return res.json({ villages: [], clusters: { fever: 0, weakness: 0, stress: 0, highBp: 0 } });
+    }
+
+    const screenings = await Screening.find({ patientId: { $in: patientIds } })
+      .sort({ createdAt: -1 })
+      .lean();
 
     // Aggregate data for community risk pulse
     const villageData = {};
     const diseaseClusters = { fever: 0, weakness: 0, stress: 0, highBp: 0 };
+    const latestByPatient = new Map();
     
     // Group by village
-    screenings.forEach(s => {
-      const village = s.patientId?.village || 'Unknown';
-      if (!villageData[village]) {
-        villageData[village] = { total: 0, highRisk: 0, mediumRisk: 0 };
+    screenings.forEach((s) => {
+      const patientKey = String(s.patientId);
+      if (!latestByPatient.has(patientKey)) {
+        latestByPatient.set(patientKey, s);
       }
-      villageData[village].total++;
-      if (s.result?.riskLevel === 'High') villageData[village].highRisk++;
-      if (s.result?.riskLevel === 'Medium') villageData[village].mediumRisk++;
+    });
 
-      // Clusters
-      if (s.data?.fever && ['mild', 'high'].includes(s.data.fever.toLowerCase())) diseaseClusters.fever++;
-      if (s.data?.weakness && ['some', 'severe'].includes(s.data.weakness.toLowerCase())) diseaseClusters.weakness++;
-      if (s.data?.stress && s.data.stress.toLowerCase() === 'high') diseaseClusters.stress++;
-      if (s.data?.bp && s.data.bp.toLowerCase() === 'high') diseaseClusters.highBp++;
+    latestByPatient.forEach((s, patientKey) => {
+      const village = patientMap.get(patientKey)?.village || 'Unknown';
+
+      if (!villageData[village]) {
+        villageData[village] = { total: 0, highRisk: 0, mediumRisk: 0, lowRisk: 0 };
+      }
+
+      villageData[village].total++;
+
+      const riskLevel = (s.result?.riskLevel || 'Low').toLowerCase();
+      if (riskLevel === 'critical' || riskLevel === 'high') villageData[village].highRisk++;
+      else if (riskLevel === 'medium' || riskLevel === 'moderate') villageData[village].mediumRisk++;
+      else villageData[village].lowRisk++;
+
+      const fever = String(s.data?.fever || '').toLowerCase();
+      const weakness = String(s.data?.weakness || '').toLowerCase();
+      const stress = String(s.data?.stress || '').toLowerCase();
+      const bp = String(s.data?.bp || '').toLowerCase();
+
+      if (['mild', 'high', 'hot'].includes(fever)) diseaseClusters.fever++;
+      if (['some', 'severe', 'yes'].includes(weakness)) diseaseClusters.weakness++;
+      if (['high', 'often'].includes(stress)) diseaseClusters.stress++;
+      if (bp === 'high') diseaseClusters.highBp++;
     });
 
     const villagesList = Object.keys(villageData).map(name => ({
       name,
       ...villageData[name],
       riskScore: Math.round(((villageData[name].highRisk * 2 + villageData[name].mediumRisk) / (villageData[name].total * 2)) * 100) || 0
-    }));
+    })).sort((a, b) => b.riskScore - a.riskScore);
 
     res.json({
       villages: villagesList,
