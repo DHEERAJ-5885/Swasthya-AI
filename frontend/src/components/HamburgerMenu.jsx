@@ -33,11 +33,11 @@ export default function HamburgerMenu() {
 
   return (
     <>
-      {/* Hamburger Button - Only visible on non-login pages */}
+      {/* Hamburger Button - Mobile only, hidden on desktop where sidebar is shown */}
       <button
         id="hamburger-trigger"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-5 left-4 z-[60] p-2.5 rounded-xl bg-white/90 backdrop-blur-md hover:bg-white transition-all shadow-md border border-slate-100 group active:scale-95 sm:absolute"
+        className="md:hidden fixed top-5 left-4 z-[60] p-2.5 rounded-xl bg-white/90 backdrop-blur-md hover:bg-white transition-all shadow-md border border-slate-100 group active:scale-95"
       >
         <Menu className="w-6 h-6 text-slate-700 group-hover:text-primary transition-colors" />
       </button>

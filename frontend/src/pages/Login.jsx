@@ -145,11 +145,36 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[#F8FAFC] overflow-x-hidden">
+    <div className="min-h-screen w-full flex bg-[#F8FAFC] overflow-x-hidden">
+      {/* Desktop Left Branding Panel */}
+      <div className="hidden md:flex w-1/2 bg-gradient-to-br from-primary via-teal-600 to-emerald-700 p-12 flex-col justify-between text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px'}} />
+        <div>
+          <div className="flex items-center gap-3 mb-12">
+            <div className="p-2 bg-white/20 rounded-xl">
+              <ShieldPlus className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight">Swasthya AI</span>
+          </div>
+          <h2 className="text-4xl font-bold leading-tight mb-4">Empowering ASHA Workers with AI-Powered Healthcare</h2>
+          <p className="text-white/80 text-lg leading-relaxed">Monitor patient health, detect risk drift, and coordinate care — all from one intelligent platform built for frontline healthcare workers.</p>
+        </div>
+        <div className="space-y-4">
+          {[{icon: HeartPulse, label: 'Real-time health drift detection'}, {icon: BadgeCheck, label: 'AI-powered risk assessment'}, {icon: UsersRound, label: 'Family & community health insights'}].map(({icon: Icon, label}) => (
+            <div key={label} className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                <Icon className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-white/90 font-medium">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Auth Card Container */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative">
         {/* Mobile Header */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-8 md:hidden">
           <div className="p-3 bg-primary/10 rounded-2xl mb-4">
             <ShieldPlus className="w-10 h-10 text-primary" />
           </div>

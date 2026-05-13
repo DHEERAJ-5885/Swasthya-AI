@@ -53,9 +53,9 @@ export default function Dashboard() {
   const data = stats || { totalPatients: 0, highRiskPatients: 0, followUpsToday: 0, pendingAlerts: 0, communityRisk: 'Unknown' };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
       {/* Top App Bar & Header */}
-      <div className="bg-primary px-6 pt-10 pb-6 rounded-b-[32px] text-white shadow-lg shadow-primary/20 sticky top-0 z-10">
+      <div className="bg-primary px-6 pt-10 pb-6 md:pt-8 md:rounded-none md:rounded-b-none md:px-10 rounded-b-[32px] text-white shadow-lg shadow-primary/20 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="w-10" />
           <div className="flex items-center gap-3">
@@ -85,9 +85,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="px-6 -mt-4 relative z-20 space-y-5">
+      <div className="px-6 md:px-10 -mt-4 relative z-20 space-y-5">
         {/* Top Metric Cards */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.06)] border-0 rounded-2xl">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="bg-primary/10 p-3 rounded-xl shrink-0">
@@ -134,6 +134,8 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Desktop: two-column layout for AI summary + community risk */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* AI Health Summary */}
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-primary/20 rounded-2xl">
           <CardContent className="p-4 flex gap-3">
@@ -173,11 +175,12 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        </div>{/* end two-col grid */}
 
         {/* Quick Actions */}
         <div>
           <h2 className="text-sm font-bold text-slate-900 mb-3">{t('quickActions', language)}</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
             <button onClick={() => navigate('/patients/add')} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity p-3 bg-white rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />

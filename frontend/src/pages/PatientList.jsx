@@ -33,10 +33,10 @@ export default function PatientList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-slate-50 pb-24 md:pb-6">
       {/* Search Bar Area */}
-      <div className="bg-slate-50 px-6 py-5 sticky top-0 z-10">
-        <div className="relative flex items-center">
+      <div className="bg-slate-50 px-6 md:px-10 py-5 sticky top-0 z-10">
+        <div className="relative flex items-center max-w-3xl">
           <Search className="absolute left-4 w-5 h-5 text-slate-400" />
           <input 
             type="text" 
@@ -51,13 +51,13 @@ export default function PatientList() {
         </div>
       </div>
 
-      <div className="px-6 space-y-3">
+      <div className="px-6 md:px-10">
         {loading ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map(patient => (
           <div 
             key={patient._id} 
@@ -94,7 +94,7 @@ export default function PatientList() {
         {filtered.length === 0 && (
            <div className="text-center py-10 text-slate-500 text-sm font-medium">No patients found.</div>
         )}
-        </>
+        </div>
         )}
       </div>
     </div>
