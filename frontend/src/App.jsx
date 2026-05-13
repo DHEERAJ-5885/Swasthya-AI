@@ -53,11 +53,21 @@ function AuthScopedChromeAssistant() {
   return isAuthenticated ? <AIAssistant /> : null;
 }
 
+import { useLocation } from 'react-router-dom';
+
 function AppShell() {
   const { token, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
 
   return (
-    <div key={token || 'guest'} id="app-shell" className="relative mx-auto min-h-screen w-full max-w-[430px] overflow-x-hidden bg-white sm:rounded-3xl sm:shadow-xl sm:border sm:border-slate-200 pb-16">
+    <div 
+      key={token || 'guest'} 
+      id="app-shell" 
+      className={`relative mx-auto min-h-screen w-full overflow-x-hidden bg-[#F8FAFC] max-w-[430px] sm:shadow-2xl sm:border-x sm:border-slate-200 ${
+        isLoginPage ? '' : 'pb-16'
+      }`}
+    >
       <Toaster position="top-center" toastOptions={{ style: { fontSize: '12px', fontWeight: 600, borderRadius: '12px' } }} />
       {isAuthenticated && <HamburgerMenu />}
       <Routes>

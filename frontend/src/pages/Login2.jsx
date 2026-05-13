@@ -25,7 +25,7 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { employeeId, password });
+      const res = await api.post('/api/auth/login', { employeeId, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('worker', JSON.stringify(res.data.worker));
       toast.success('Login successful!');

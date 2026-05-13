@@ -33,12 +33,13 @@ export default function HamburgerMenu() {
 
   return (
     <>
-      {/* Hamburger Button */}
+      {/* Hamburger Button - Only visible on non-login pages */}
       <button
+        id="hamburger-trigger"
         onClick={() => setIsOpen(!isOpen)}
-        className="absolute top-5 left-4 z-40 p-2 rounded-lg bg-white/80 backdrop-blur hover:bg-white transition-colors shadow-sm"
+        className="fixed top-5 left-4 z-[60] p-2.5 rounded-xl bg-white/90 backdrop-blur-md hover:bg-white transition-all shadow-md border border-slate-100 group active:scale-95 sm:absolute"
       >
-        <Menu className="w-6 h-6 text-slate-900" />
+        <Menu className="w-6 h-6 text-slate-700 group-hover:text-primary transition-colors" />
       </button>
 
       {/* Overlay */}
@@ -49,7 +50,7 @@ export default function HamburgerMenu() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="absolute inset-0 bg-black/40 z-40"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[70] sm:absolute"
           />
         )}
       </AnimatePresence>
@@ -61,8 +62,8 @@ export default function HamburgerMenu() {
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 20 }}
-            className="absolute left-0 top-0 h-full w-72 bg-white shadow-xl z-50 flex flex-col"
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed left-0 top-0 h-full w-[280px] bg-white shadow-2xl z-[80] flex flex-col sm:absolute"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-primary to-primary-dark text-white p-6 flex items-center justify-between">

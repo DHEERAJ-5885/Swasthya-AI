@@ -140,7 +140,7 @@ const addObservation = async (req, res) => {
 const assignExistingPatients = async (req, res) => {
   try {
     // Match patients that do not have worker assigned (missing, null or empty)
-    const filter = { $or: [ { worker: { $exists: false } }, { worker: null }, { worker: '' } ] };
+    const filter = { $or: [ { worker: { $exists: false } }, { worker: null } ] };
     const unassigned = await Patient.find(filter).select('_id');
     if (!unassigned || unassigned.length === 0) {
       return res.json({ matched: 0, updated: 0 });

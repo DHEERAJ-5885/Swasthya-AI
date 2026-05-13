@@ -39,7 +39,7 @@ const screeningSchema = new mongoose.Schema({
     extractedSymptoms: [String]
   },
   result: {
-    riskLevel: { type: String, enum: ['Low', 'Medium', 'High'] },
+    riskLevel: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'] },
     confidence: Number,
     reason: String,
     nextAction: String,
@@ -47,8 +47,8 @@ const screeningSchema = new mongoose.Schema({
     trend: { type: String, enum: ['Improving', 'Stable', 'Declining', 'Critical Drift', 'No Data'] },
     explanation: String,
     driftScore: Number,
-    driftStatus: { type: String, enum: ['Stable', 'Improving', 'Declining', 'Critical Drift'] },
-    trendDirection: { type: String, enum: ['Improving', 'Stable', 'Declining', 'Critical Drift'] },
+    driftStatus: { type: String, enum: ['Stable', 'Improving', 'Declining', 'Critical Drift', 'No Data'] },
+    trendDirection: { type: String, enum: ['Improving', 'Stable', 'Declining', 'Critical Drift', 'No Data', 'N/A'] },
     previousComparison: [String],
     aiExplanation: String,
     followUpRecommendation: String,
