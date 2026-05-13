@@ -8,7 +8,7 @@ import {
   Building2, Mail
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../api';
+import api, { API_URL } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,7 +33,6 @@ export default function Login() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const { setAuth } = useAuth();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

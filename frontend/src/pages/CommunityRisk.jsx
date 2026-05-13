@@ -122,7 +122,7 @@ export default function CommunityRisk() {
         {chartData.length > 0 && (
           <div className="bg-white p-5 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100">
             <h3 className="text-sm font-bold text-slate-900 mb-6">Disease Clusters</h3>
-            <div className="h-48 w-full">
+            <div className="w-full" style={{ minWidth: 0, height: 200 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />

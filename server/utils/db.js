@@ -1,12 +1,18 @@
 const mongoose = require('mongoose');
 
 const connectDB = async (retries = 5, delay = 5000) => {
-  const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/swasthya-ai';
+  const uri = process.env.MONGO_URI;
+
+  if (!uri) {
+    throw new Error('MONGO_URI is not configured');
+  }
   
   while (retries > 0) {
     try {
       console.log(`Attempting MongoDB connection... (${retries} retries left)`);
-      await mongoose.connect(uri);
+      await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 10000,
+      });
       console.log('MongoDB connection established successfully.');
       return;
     } catch (err) {

@@ -55,7 +55,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
       {/* Top App Bar & Header */}
-      <div className="bg-primary px-6 pt-10 pb-6 md:pt-8 md:rounded-none md:rounded-b-none md:px-10 rounded-b-[32px] text-white shadow-lg shadow-primary/20 sticky top-0 z-10">
+      <div className="bg-primary px-6 pt-10 pb-6 md:pt-8 md:rounded-none md:rounded-b-none md:px-10 rounded-b-[32px] text-white shadow-lg shadow-primary/20 relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="w-10" />
           <div className="flex items-center gap-3">

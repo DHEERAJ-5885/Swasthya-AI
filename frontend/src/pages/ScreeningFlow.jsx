@@ -94,6 +94,13 @@ export default function ScreeningFlow() {
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
+        if (event.error === 'network') {
+          toast.error('Network error: Voice recognition requires an active internet connection.');
+        } else if (event.error === 'not-allowed') {
+          toast.error('Microphone access denied. Please check permissions.');
+        } else {
+          toast.error(`Voice recognition stopped: ${event.error}`);
+        }
         setIsListening(false);
       };
     }
