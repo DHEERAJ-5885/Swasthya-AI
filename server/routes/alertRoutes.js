@@ -33,4 +33,52 @@ router.put('/:id/read', authMiddleware, async (req, res) => {
   }
 });
 
+// GET specific alert with detailed patient & screening context
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const alert = await Alert.findById(req.params.id);
+    if (!alert) return res.status(404).json({ error: 'Alert not found' });
+
+    let patient = null;
+    let latestScreening = null;
+    let previousScreenings = [];
+
+    if (alert.patientId) {
+      patient = await Patient.findOne({ _id: alert.patientId, worker: req.userId });
+      if (patient) {
+        const Screening = require('../models/Screening');
+        latestScreening = await Screening.findOne({ patientId: patient._id }).sort({ createdAt: -1 });
+        previousScreenings = await Screening.find({ patientId: patient._id }).sort({ createdAt: -1 }).limit(5);
+      }
+    }
+
+    res.json({
+      alert,
+      patient,
+      latestScreening,
+      previousScreenings
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch alert details' });
+  }
+});
+
+// Mark alert as resolved
+router.put('/:id/resolve', authMiddleware, async (req, res) => {
+  try {
+    const alert = await Alert.findById(req.params.id);
+    if (!alert) return res.status(404).json({ error: 'Alert not found' });
+
+    if (alert.patientId) {
+      const patient = await Patient.findOne({ _id: alert.patientId, worker: req.userId });
+      if (!patient) return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    const updated = await Alert.findByIdAndUpdate(req.params.id, { resolved: true, read: true }, { new: true });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to resolve alert' });
+  }
+});
+
 module.exports = router;
