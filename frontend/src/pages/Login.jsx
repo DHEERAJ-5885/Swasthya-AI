@@ -102,7 +102,7 @@ export default function Login() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        const res = await api.post('/auth/login', { 
+        const res = await api.post('', { 
           employeeId: formData.employeeId, 
           phone: formData.phone, 
           password: formData.password 

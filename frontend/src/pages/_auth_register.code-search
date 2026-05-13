@@ -1,0 +1,14 @@
+# Query: /auth/register
+# ContextLines: 1
+
+2 results - 2 files
+
+frontend/src/pages/Login.jsx:
+  113        } else {
+  114:         const res = await api.post('/auth/register', { 
+  115            employeeId: formData.employeeId, 
+
+frontend/src/pages/Login2.jsx:
+  51      try {
+  52:       const res = await api.post('/api/auth/register', { employeeId, name, phone, village, email, password });
+  53        localStorage.setItem('token', res.data.token);
