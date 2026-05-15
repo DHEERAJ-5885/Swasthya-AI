@@ -16,6 +16,7 @@ import Alerts from './pages/Alerts';
 import AlertDetail from './pages/AlertDetail';
 import AshaWorkerProfile from './pages/AshaWorkerProfile';
 import PublicPatientCard from './pages/PublicPatientCard';
+import AIInsights from './pages/AIInsights';
 import HamburgerMenu from './components/HamburgerMenu';
 import AIAssistant from './components/AIAssistant';
 import BottomNav from './components/BottomNav';
@@ -88,6 +89,7 @@ function AppShell() {
           <Route path="/community-risk" element={<PrivateRoute><CommunityRisk /></PrivateRoute>} />
           <Route path="/alerts" element={<PrivateRoute><Alerts /></PrivateRoute>} />
           <Route path="/alerts/:id" element={<PrivateRoute><AlertDetail /></PrivateRoute>} />
+          <Route path="/ai-insights" element={<PrivateRoute><AIInsights /></PrivateRoute>} />
         </Routes>
       </main>
       

@@ -81,4 +81,23 @@ router.put('/:id/resolve', authMiddleware, async (req, res) => {
   }
 });
 
+// Create Emergency Alert
+router.post('/emergency', authMiddleware, async (req, res) => {
+  try {
+    const { village } = req.body;
+    const alert = new Alert({
+      type: 'Emergency',
+      title: 'Emergency Medical Assistance Required',
+      message: `Emergency reported by ASHA worker in ${village || 'your area'}. Immediate assistance requested.`,
+      village: village || 'Unknown',
+      read: false,
+      resolved: false
+    });
+    await alert.save();
+    res.status(201).json(alert);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create emergency alert' });
+  }
+});
+
 module.exports = router;

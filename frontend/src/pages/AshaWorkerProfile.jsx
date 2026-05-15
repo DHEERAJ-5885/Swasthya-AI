@@ -14,6 +14,9 @@ export default function AshaWorkerProfile() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [newPassword, setNewPassword] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const navigate = useNavigate();
   const { language, setLanguage, getLanguageLabel } = useLanguage();
 
@@ -40,16 +43,40 @@ export default function AshaWorkerProfile() {
   };
 
   const handleSaveProfile = async () => {
+    // Validation
+    if (editData.phone && !/^\d{10}$/.test(editData.phone)) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
+    
     try {
       setLoading(true);
-      await api.put('/auth/profile', editData);
+      const payload = { ...editData };
+      if (newPassword) payload.password = newPassword;
+      // In a real app, handle photo upload to S3/Cloudinary here
+      if (photoPreview) payload.profilePhoto = photoPreview; // Mocking photo save
+
+      await api.put('/auth/profile', payload);
       toast.success('Profile updated successfully');
-      setWorker(editData);
+      setWorker(payload);
       setIsEditing(false);
+      setNewPassword('');
       setLoading(false);
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to update profile');
       setLoading(false);
+    }
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -95,12 +122,18 @@ export default function AshaWorkerProfile() {
     <div className="space-y-4 pb-24">
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-primary-dark text-white p-6 rounded-b-3xl">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-            {worker.profilePhoto ? (
-              <img src={worker.profilePhoto} alt={worker.name} className="w-full h-full object-cover" />
+        <div className="flex items-center gap-4 mb-4 relative">
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center overflow-hidden relative group">
+            {photoPreview || worker.profilePhoto ? (
+              <img src={photoPreview || worker.profilePhoto} alt={worker.name} className="w-full h-full object-cover" />
             ) : (
               <div className="text-2xl font-bold text-white">{worker.name.charAt(0)}</div>
+            )}
+            {isEditing && (
+              <label className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                <Edit2 className="w-5 h-5 text-white" />
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+              </label>
             )}
           </div>
           <div className="flex-1">
@@ -197,6 +230,16 @@ export default function AshaWorkerProfile() {
                 <option value="hi">Hindi</option>
                 <option value="te">Telugu</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Leave blank to keep current"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary"
+              />
             </div>
           </Card>
         ) : (

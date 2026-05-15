@@ -74,9 +74,7 @@ export default function Alerts() {
         {alerts.length === 0 ? (
           <div className="text-center p-6 text-slate-500">No new alerts.</div>
         ) : (
-          alerts
-            .slice(0, 3)
-            .map(alert => {
+          alerts.map(alert => {
             const { icon: Icon, dotColor, iconBg, iconColor } = getIconData(alert.type);
             const timeAgo = new Date(alert.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
