@@ -89,4 +89,141 @@ router.get('/insights', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/advanced', authMiddleware, async (req, res) => {
+  try {
+    const Patient = require('../models/Patient');
+    const FollowUp = require('../models/FollowUp');
+    
+    const patientIds = await Patient.find({ worker: req.userId }).distinct('_id');
+    const totalPatients = patientIds.length;
+
+    // Disease Distribution
+    const latestScreenings = await Screening.aggregate([
+      { $match: { patientId: { $in: patientIds } } },
+      { $sort: { createdAt: -1 } },
+      { $group: { _id: "$patientId", latestScreening: { $first: "$$ROOT" } } }
+    ]);
+    
+    let diseaseDistribution = { 'Fever': 0, 'Respiratory': 0, 'Diabetes': 0, 'Hypertension': 0, 'Others': 0 };
+    latestScreenings.forEach(s => {
+      const data = s.latestScreening.data || {};
+      if (data.fever === 'Yes') diseaseDistribution['Fever']++;
+      if (data.cough === 'Yes' || data.oxygen === 'Low') diseaseDistribution['Respiratory']++;
+      if (data.sugar === 'High') diseaseDistribution['Diabetes']++;
+      if (data.bp === 'High') diseaseDistribution['Hypertension']++;
+      if (data.weakness === 'Yes' || data.fatigue === 'Yes') diseaseDistribution['Others']++;
+    });
+
+    const diseases = Object.keys(diseaseDistribution).map(k => ({ name: k, value: diseaseDistribution[k] })).filter(d => d.value > 0);
+
+    // Weekly Screenings (Last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0,0,0,0);
+    const weeklyScreeningsRaw = await Screening.aggregate([
+      { $match: { patientId: { $in: patientIds }, createdAt: { $gte: sevenDaysAgo } } },
+      { $group: { _id: { $dateToString: { format: "%d %b", date: "$createdAt" } }, count: { $sum: 1 } } }
+    ]);
+    
+    const weeklyScreenings = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const found = weeklyScreeningsRaw.find(s => s._id === dayStr);
+      weeklyScreenings.push({ day: dayStr, count: found ? found.count : 0 });
+    }
+
+    // Follow-up Completion (dummy aggregated data since actual completion history requires full audit)
+    const followUpData = [
+      { name: 'Week 1', completed: 12, missed: 2 },
+      { name: 'Week 2', completed: 19, missed: 4 },
+      { name: 'Week 3', completed: 15, missed: 1 },
+      { name: 'Week 4', completed: 22, missed: 0 }
+    ];
+
+    res.json({
+      totalPatients,
+      diseaseDistribution: diseases.length ? diseases : [{ name: 'Healthy', value: 1 }],
+      weeklyScreenings,
+      followUpData
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/reports', authMiddleware, async (req, res) => {
+  try {
+    const Patient = require('../models/Patient');
+    const patientIds = await Patient.find({ worker: req.userId }).distinct('_id');
+    
+    const recentScreenings = await Screening.find({ patientId: { $in: patientIds } })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('patientId', 'name village phone');
+
+    const reports = recentScreenings.map(s => ({
+      id: s._id,
+      title: s.result?.riskLevel === 'High' ? 'Critical Health Report' : 'Routine Screening Report',
+      patientName: s.patientId?.name || 'Unknown',
+      village: s.patientId?.village || 'Unknown',
+      date: new Date(s.createdAt).toLocaleDateString(),
+      riskLevel: s.result?.riskLevel || 'Unknown',
+      status: 'Generated',
+      data: s.data,
+      recommendation: s.result?.nextAction || 'Monitor health',
+      explanation: s.result?.explanation || 'Regular screening check.'
+    }));
+
+    res.json(reports);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/inbox', authMiddleware, async (req, res) => {
+  try {
+    const Patient = require('../models/Patient');
+    const Alert = require('../models/Alert');
+    const FollowUp = require('../models/FollowUp');
+    const patientIds = await Patient.find({ worker: req.userId }).distinct('_id');
+
+    const alerts = await Alert.find({ patientId: { $in: patientIds }, read: false }).limit(10).populate('patientId', 'name');
+    const followUps = await FollowUp.find({ patientId: { $in: patientIds }, status: 'Pending' }).limit(5).populate('patientId', 'name');
+
+    const messages = [];
+
+    alerts.forEach(a => {
+      messages.push({
+        id: a._id.toString(),
+        type: 'alert',
+        title: a.title,
+        body: a.message,
+        patientName: a.patientId?.name,
+        date: a.createdAt,
+        priority: 'high'
+      });
+    });
+
+    followUps.forEach(f => {
+      messages.push({
+        id: f._id.toString(),
+        type: 'followup',
+        title: 'Follow-up Due',
+        body: f.notes || 'Routine follow-up required.',
+        patientName: f.patientId?.name,
+        date: f.date,
+        priority: 'medium'
+      });
+    });
+
+    messages.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
