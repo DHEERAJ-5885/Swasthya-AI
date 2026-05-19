@@ -5,7 +5,7 @@ const normalizeApiBaseUrl = (url) => {
   const trimmed = (url || '').replace(/\/$/, '');
 
   if (!trimmed) {
-    return 'http://localhost:5000/api';
+    return 'https://swasthya-ai-backend-tjvn.onrender.com/api';
   }
 
   return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
@@ -53,7 +53,7 @@ export const saveOffline = (key, data) => {
 
 export const syncOfflineData = async () => {
   if (!navigator.onLine) return;
-  
+
   const offlineScreenings = JSON.parse(localStorage.getItem('offline_screenings') || '[]');
   if (offlineScreenings.length > 0) {
     for (const screening of offlineScreenings) {
