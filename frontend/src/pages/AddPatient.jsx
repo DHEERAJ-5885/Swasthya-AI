@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button';
 import { ArrowLeft, Mic, Camera, ScanLine } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import MobileHeader from '../components/MobileHeader';
 
 export default function AddPatient() {
   const navigate = useNavigate();
@@ -64,7 +65,8 @@ export default function AddPatient() {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      <div className="px-6 py-5 flex items-center justify-between sticky top-0 bg-white z-10 border-b border-slate-50">
+      <MobileHeader title="Add New Patient" />
+      <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-white z-10 border-b border-slate-50">
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>

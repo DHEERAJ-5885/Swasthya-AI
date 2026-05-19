@@ -6,6 +6,7 @@ import { ArrowLeft, MoreVertical, TrendingUp, TrendingDown, Minus, Loader2, QrCo
 import QRCodeModal from '../components/QRCodeModal';
 import toast from 'react-hot-toast';
 import api from '../api';
+import MobileHeader from '../components/MobileHeader';
 
 export default function PatientProfile() {
   const { id } = useParams();
@@ -194,11 +195,19 @@ export default function PatientProfile() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
+      <MobileHeader 
+        title="Patient Profile" 
+        actions={
+          <button onClick={() => setShowQRModal(true)} className="text-slate-800 hover:bg-slate-100 p-2 rounded-full transition-colors active:scale-95">
+            <QrCode className="w-5 h-5" />
+          </button>
+        }
+      />
       {/* QR Code Modal */}
       <QRCodeModal patient={patient} isOpen={showQRModal} onClose={() => setShowQRModal(false)} />
       
-      {/* Top App Bar */}
-      <div className="px-6 py-4 flex items-center justify-between sticky top-0 bg-slate-50 z-20">
+      {/* Top App Bar (Desktop Only) */}
+      <div className="hidden md:flex px-6 py-4 items-center justify-between sticky top-0 bg-slate-50 z-20">
         <button onClick={() => navigate('/patients')} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>

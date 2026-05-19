@@ -21,7 +21,7 @@ export default function BottomNav() {
     { name: 'Patients', path: '/patients', icon: Users },
     { name: 'Add', path: '/patients/add', icon: Plus, isFab: true }, // Floating Action Button
     { name: 'Alerts', path: '/alerts', icon: Bell, badge: unreadCount > 0 ? unreadCount : null },
-    { name: 'More', path: '/menu', icon: Menu }
+    { name: 'More', path: '#menu', icon: Menu, isAction: true }
   ];
 
   // Only show on main tabs
@@ -52,7 +52,14 @@ export default function BottomNav() {
           return (
             <button
               key={item.name}
-              onClick={() => navigate(item.path)}
+              onClick={(e) => {
+                if (item.isAction) {
+                  e.preventDefault();
+                  window.dispatchEvent(new CustomEvent('open-mobile-menu'));
+                } else {
+                  navigate(item.path);
+                }
+              }}
               className={`relative flex flex-col items-center justify-center w-16 h-full transition-colors ${
                 isActive ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
               }`}

@@ -103,17 +103,13 @@ export default function Dashboard() {
   return (
     <div className="w-full min-h-screen pb-24 md:pb-8 font-sans selection:bg-primary/20 overflow-x-hidden">
       
-      {/* Search & Top Nav Bar (Desktop) */}
-      <div className="hidden md:flex items-center justify-between px-8 py-4 bg-white/50 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100/50">
-        <div className="flex items-center bg-slate-100/50 rounded-full px-4 py-2 w-96 border border-slate-200/50 focus-within:border-primary/30 focus-within:bg-white transition-all">
-          <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input 
-            type="text" 
-            placeholder="Search patients, reports..." 
-            className="bg-transparent border-none outline-none text-sm ml-2 w-full text-slate-700 placeholder-slate-400"
-          />
+      {/* Top Nav Bar (Desktop) - Re-aligned, Search removed */}
+      <div className="hidden md:flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100/50">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-primary/10 rounded-lg">
+            <ShieldPlus className="w-5 h-5 text-primary" />
+          </div>
+          <span className="font-bold text-slate-900 text-lg tracking-tight">Swasthya AI</span>
         </div>
         
         <div className="flex items-center gap-4">
@@ -154,40 +150,42 @@ export default function Dashboard() {
       </div>
 
       {/* Hero Banner Section */}
-      <div className="relative w-full h-[280px] md:h-[320px] bg-slate-900 overflow-hidden flex items-center justify-center">
-        <img 
-          src={dashboardHero} 
-          alt="Healthcare Dashboard" 
-          className="absolute inset-0 w-full h-full object-cover object-top md:object-center opacity-90"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/80 via-primary/50 to-transparent"></div>
+      <div className="w-full px-0 md:px-8 md:pt-6 max-w-[1440px] mx-auto">
+        <div className="relative w-full h-[280px] sm:h-[300px] md:h-[380px] bg-[#0f172a] overflow-hidden flex flex-col justify-center rounded-none md:rounded-[32px] shadow-sm z-10">
+          <img 
+            src={dashboardHero} 
+            alt="Healthcare Dashboard" 
+            className="absolute inset-0 w-full h-full object-cover md:object-contain md:object-right opacity-85 md:opacity-90"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/70 md:via-slate-900/40 to-transparent"></div>
         
-        <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-center text-white z-10 max-w-2xl">
+        <div className="relative p-6 md:p-10 flex flex-col justify-center text-white z-10 max-w-3xl mt-4 md:mt-0">
           <p className="text-sm md:text-base font-semibold text-white/90 mb-2 flex items-center gap-2">
             Namaste, {worker.name || 'ASHA Worker'} <span className="text-xl">👋</span>
           </p>
-          <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-4 tracking-tight shadow-sm">
-            Empowering Health, <br />
-            <span className="text-white/90 font-light">Transforming Lives</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight mb-4 tracking-tight shadow-sm text-white drop-shadow-md">
+            Empowering Health, <br className="hidden sm:block"/>
+            <span className="text-indigo-100 font-light drop-shadow-md">Transforming Lives</span>
           </h1>
-          <p className="text-xs md:text-sm font-medium text-white/80 flex items-center gap-2 bg-black/20 w-fit px-3 py-1.5 rounded-full backdrop-blur-md">
-            <BrainCircuit className="w-4 h-4" /> AI-powered insights for a healthier community
+          <p className="text-xs md:text-sm font-bold text-white flex items-center gap-2 bg-black/30 w-fit px-4 py-2 rounded-full backdrop-blur-md shadow-inner border border-white/10">
+            <BrainCircuit className="w-4 h-4 text-emerald-400" /> AI-powered insights for a healthier community
           </p>
         </div>
 
         {/* Weather/Location floating top right on desktop */}
-        <div className="hidden md:flex absolute top-10 right-10 flex-col items-end text-white text-shadow-sm">
-          <div className="flex items-center gap-2 text-3xl font-bold mb-1">
-            <Cloud className="w-8 h-8 opacity-90" /> 28°C
+        <div className="hidden md:flex absolute top-10 right-10 flex-col items-end text-white text-shadow-sm drop-shadow-lg z-10">
+          <div className="flex items-center gap-2 text-3xl font-black mb-1">
+            <Cloud className="w-8 h-8 opacity-100 text-blue-200" /> 28°C
           </div>
-          <p className="font-medium text-white/90">{worker.village || 'Shadnagar'} Village</p>
-          <p className="text-xs text-white/70">Tue, 20 May 2026</p>
+          <p className="font-bold text-white tracking-wide">{worker.village || 'Shadnagar'} Village</p>
+          <p className="text-xs text-white/80 font-medium">Tue, 20 May 2026</p>
         </div>
+      </div>
       </div>
 
       {/* Main Content Area */}
       <motion.div 
-        className="px-4 md:px-8 -mt-16 md:-mt-20 relative z-20 space-y-6 w-full max-w-[1400px] mx-auto"
+        className="px-4 md:px-8 mt-6 md:mt-8 relative z-20 space-y-6 w-full max-w-[1440px] mx-auto"
         variants={containerVariants}
         initial="hidden"
         animate="show"

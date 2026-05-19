@@ -4,6 +4,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { Search, Filter, ChevronRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import MobileHeader from '../components/MobileHeader';
 
 export default function PatientList() {
   const navigate = useNavigate();
@@ -34,8 +35,9 @@ export default function PatientList() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-6">
+      <MobileHeader title="Patients" />
       {/* Search Bar Area */}
-      <div className="bg-slate-50 px-6 md:px-10 py-5 sticky top-0 z-10">
+      <div className="bg-slate-50 px-6 md:px-10 py-5 sticky md:top-0 top-[60px] z-10">
         <div className="relative flex items-center max-w-3xl">
           <Search className="absolute left-4 w-5 h-5 text-slate-400" />
           <input 

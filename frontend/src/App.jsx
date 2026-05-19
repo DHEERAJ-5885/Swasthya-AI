@@ -17,6 +17,9 @@ import AlertDetail from './pages/AlertDetail';
 import AshaWorkerProfile from './pages/AshaWorkerProfile';
 import PublicPatientCard from './pages/PublicPatientCard';
 import AIInsights from './pages/AIInsights';
+import Analytics from './pages/Analytics';
+import Reports from './pages/Reports';
+import Messages from './pages/Messages';
 import HamburgerMenu from './components/HamburgerMenu';
 import AIAssistant from './components/AIAssistant';
 import BottomNav from './components/BottomNav';
@@ -90,6 +93,9 @@ function AppShell() {
           <Route path="/alerts" element={<PrivateRoute><Alerts /></PrivateRoute>} />
           <Route path="/alerts/:id" element={<PrivateRoute><AlertDetail /></PrivateRoute>} />
           <Route path="/ai-insights" element={<PrivateRoute><AIInsights /></PrivateRoute>} />
+          <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+          <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+          <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
         </Routes>
       </main>
       

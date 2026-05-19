@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import api from '../api';
+import MobileHeader from '../components/MobileHeader';
 
 export default function FamilyInsights() {
   const navigate = useNavigate();
@@ -65,7 +66,8 @@ export default function FamilyInsights() {
   if (!familyData || !familyData.members || familyData.members.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 pb-20">
-        <div className="px-6 py-5 flex items-center sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
+        <MobileHeader title="Family Intelligence" />
+        <div className="hidden md:flex px-6 py-5 items-center sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
           <button onClick={() => navigate(-1)} className="text-slate-800 absolute left-6"><ArrowLeft className="w-6 h-6" /></button>
           <h1 className="text-sm font-bold text-slate-900 mx-auto">Family Intelligence</h1>
         </div>
@@ -85,7 +87,8 @@ export default function FamilyInsights() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <div className="px-6 py-5 flex items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
+      <MobileHeader title="Family Intelligence" />
+      <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>

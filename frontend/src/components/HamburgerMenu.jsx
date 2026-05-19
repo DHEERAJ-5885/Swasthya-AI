@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Menu, Home, Users, AlertCircle, Stethoscope, BrainCircuit, LogOut, User } from 'lucide-react';
+import { 
+  X, Home, Users, AlertCircle, Stethoscope, BrainCircuit, 
+  LogOut, User, Activity, UsersRound, BarChart2, FileText, MessageSquare 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,12 +14,32 @@ export default function HamburgerMenu() {
   const worker = JSON.parse(localStorage.getItem('worker') || '{}');
   const { clearAuth } = useAuth();
 
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-mobile-menu', handleOpen);
+    return () => window.removeEventListener('open-mobile-menu', handleOpen);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
+
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Patients', path: '/patients' },
     { icon: Stethoscope, label: 'Screening', path: '/patients/add' },
-    { icon: BrainCircuit, label: 'AI Insights', path: '/community-risk' },
-    { icon: AlertCircle, label: 'Alerts', path: '/alerts' }
+    { icon: BrainCircuit, label: 'AI Insights', path: '/ai-insights' },
+    { icon: AlertCircle, label: 'Alerts', path: '/alerts' },
+    { icon: UsersRound, label: 'Family Insights', path: '/family-insights' },
+    { icon: Activity, label: 'Community Risk', path: '/community-risk' },
+    { icon: BarChart2, label: 'Analytics', path: '/analytics' },
+    { icon: FileText, label: 'Reports', path: '/reports' },
+    { icon: MessageSquare, label: 'Messages', path: '/messages' }
   ];
 
   const handleNavigation = (path) => {
@@ -26,22 +49,17 @@ export default function HamburgerMenu() {
 
   const handleLogout = () => {
     clearAuth();
+    setIsOpen(false);
     navigate('/login');
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <>
-      {/* Hamburger Button - Mobile only, hidden on desktop where sidebar is shown */}
-      <button
-        id="hamburger-trigger"
-        onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-5 left-4 z-[60] p-2.5 rounded-xl bg-white/90 backdrop-blur-md hover:bg-white transition-all shadow-md border border-slate-100 group active:scale-95"
-      >
-        <Menu className="w-6 h-6 text-slate-700 group-hover:text-primary transition-colors" />
-      </button>
-
       {/* Overlay */}
       <AnimatePresence>
         {isOpen && (
@@ -50,81 +68,85 @@ export default function HamburgerMenu() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[70] sm:absolute"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] md:hidden"
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed left-0 top-0 h-full w-[280px] bg-white shadow-2xl z-[80] flex flex-col sm:absolute"
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            className="fixed left-0 top-0 h-[100dvh] w-[80vw] max-w-[320px] bg-white z-[110] flex flex-col shadow-2xl md:hidden overflow-hidden rounded-r-3xl"
           >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary to-primary-dark text-white p-6 flex items-center justify-between">
-              <div className="flex-1">
-                <h2 className="text-lg font-bold">Swasthya AI</h2>
-                <p className="text-white/80 text-xs">Healthcare Platform</p>
-              </div>
+            {/* Profile Header (Sticky) */}
+            <div className="bg-primary/5 p-6 pb-8 border-b border-primary/10 relative shrink-0">
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="absolute top-4 right-4 p-2 bg-white/50 hover:bg-white rounded-full transition-colors text-slate-500 shadow-sm backdrop-blur-sm"
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
 
-            {/* Worker Profile Section */}
-            <div className="border-b border-slate-200 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold">
-                  {worker.name?.charAt(0) || 'A'}
+              <div className="flex items-center gap-4 mt-2">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/30 border-2 border-white overflow-hidden">
+                    {worker.profilePhoto ? (
+                      <img src={worker.profilePhoto} alt={worker.name} className="w-full h-full object-cover" />
+                    ) : (
+                      worker.name?.charAt(0) || 'A'
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-900 text-sm">{worker.name || 'ASHA Worker'}</p>
-                  <p className="text-xs text-slate-500">{worker.employeeId || 'ASH-001'}</p>
+                  <p className="font-black text-slate-900 text-lg leading-tight">{worker.name || 'ASHA Worker'}</p>
+                  <p className="text-xs font-semibold text-primary/80 tracking-wide mt-1 uppercase">{worker.employeeId || 'ID-UNKNOWN'}</p>
                 </div>
               </div>
             </div>
 
-            {/* Menu Items */}
-            <nav className="flex-1 p-4 space-y-2">
-              {menuItems.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive(item.path)
-                      ? 'bg-primary text-white'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{item.label}</span>
-                </button>
-              ))}
-            </nav>
+            {/* Scrollable Navigation */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide py-4 px-3 space-y-1 bg-white">
+              <p className="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Main Menu</p>
+              {menuItems.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all ${
+                      active
+                        ? 'bg-primary text-white shadow-md shadow-primary/20'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    <item.icon className={`w-5 h-5 ${active ? 'opacity-100' : 'opacity-70'}`} />
+                    <span className="font-bold text-sm tracking-wide">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Bottom Actions */}
-            <div className="border-t border-slate-200 p-4 space-y-2">
+            {/* Bottom Actions (Sticky) */}
+            <div className="shrink-0 border-t border-slate-100 bg-slate-50/50 p-4 pb-safe space-y-2">
               <button
                 onClick={() => handleNavigation('/profile')}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-700 hover:bg-slate-100 transition-colors bg-white border border-slate-200 shadow-sm"
               >
-                <User className="w-5 h-5" />
-                <span className="font-medium text-sm">Profile</span>
+                <User className="w-5 h-5 opacity-70" />
+                <span className="font-bold text-sm">Account Settings</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent"
               >
-                <LogOut className="w-5 h-5" />
-                <span className="font-medium text-sm">Logout</span>
+                <LogOut className="w-5 h-5 opacity-80" />
+                <span className="font-bold text-sm">Sign Out</span>
               </button>
             </div>
           </motion.div>

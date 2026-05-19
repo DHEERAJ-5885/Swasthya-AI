@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import api from '../api';
 import toast from 'react-hot-toast';
+import MobileHeader from '../components/MobileHeader';
 
 export default function AIInsights() {
   const navigate = useNavigate();
@@ -52,8 +53,9 @@ export default function AIInsights() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 md:pl-64">
+      <MobileHeader title="AI Insights" />
       {/* Header */}
-      <div className="px-6 py-5 flex items-center justify-between sticky top-0 bg-[#F8FAFC]/80 backdrop-blur-md z-10 border-b border-slate-100">
+      <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-[#F8FAFC]/80 backdrop-blur-md z-10 border-b border-slate-100">
         <button onClick={() => navigate(-1)} className="text-slate-800 p-2 hover:bg-slate-100 rounded-full transition-colors">
           <ArrowLeft className="w-6 h-6" />
         </button>

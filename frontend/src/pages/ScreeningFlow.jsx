@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button';
 import { ArrowLeft, Mic, MicOff, BrainCircuit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import MobileHeader from '../components/MobileHeader';
 
 const steps = [
   { 
@@ -220,7 +221,8 @@ export default function ScreeningFlow() {
 
   return (
     <div className="min-h-screen bg-white pb-32 relative">
-      <div className="px-6 py-5 bg-white sticky top-0 z-10 shadow-sm border-b border-slate-50">
+      <MobileHeader title="Screening Flow" />
+      <div className="px-6 py-5 bg-white sticky md:top-0 top-[60px] z-10 shadow-sm border-b border-slate-50">
         <h1 className="text-lg font-bold text-slate-900 mb-4">Step {currentStep + 1} of {steps.length}: {step.title}</h1>
         <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
           <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progressPercent}%` }}></div>

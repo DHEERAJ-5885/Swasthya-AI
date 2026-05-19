@@ -49,7 +49,7 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const res = await api.post('/auth/register', { employeeId, name, phone, village, email, password });
+      const res = await api.post('api/auth/register', { employeeId, name, phone, village, email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('worker', JSON.stringify(res.data.worker));
       toast.success('Registration successful!');
