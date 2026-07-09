@@ -76,7 +76,8 @@ const createScreening = async (req, res) => {
       const followUp = new FollowUp({
         patientId,
         date: followUpDate,
-        reason: finalResult.followUpRecommendation || 'Urgent AI Drift Detection Follow-up',
+        notes: finalResult.followUpRecommendation || 'Urgent AI Drift Detection Follow-up',
+        priority: ['High', 'Critical'].includes(finalResult.riskLevel) ? 'High' : 'Medium',
         status: 'Pending'
       });
       await followUp.save();
@@ -114,7 +115,20 @@ const getScreenings = async (req, res) => {
   }
 };
 
+const getAllScreenings = async (req, res) => {
+  try {
+    const patientIds = await Patient.find({ worker: req.userId }).distinct('_id');
+    const screenings = await Screening.find({ patientId: { $in: patientIds } })
+      .sort({ createdAt: -1 })
+      .populate('patientId', 'name healthId village');
+    res.json(screenings);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch screenings' });
+  }
+};
+
 module.exports = {
   createScreening,
-  getScreenings
+  getScreenings,
+  getAllScreenings
 };

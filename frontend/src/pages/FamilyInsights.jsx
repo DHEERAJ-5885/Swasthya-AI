@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
+import { useTranslation } from 'react-i18next';
 
 export default function FamilyInsights() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [familyData, setFamilyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [familyIds, setFamilyIds] = useState([]);
@@ -66,13 +68,13 @@ export default function FamilyInsights() {
   if (!familyData || !familyData.members || familyData.members.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 pb-20">
-        <MobileHeader title="Family Intelligence" />
+        <MobileHeader title={t('family.familyIntelligence')} />
         <div className="hidden md:flex px-6 py-5 items-center sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
           <button onClick={() => navigate(-1)} className="text-slate-800 absolute left-6"><ArrowLeft className="w-6 h-6" /></button>
-          <h1 className="text-sm font-bold text-slate-900 mx-auto">Family Intelligence</h1>
+          <h1 className="text-sm font-bold text-slate-900 mx-auto">{t('family.familyIntelligence')}</h1>
         </div>
         <div className="p-6 text-center text-slate-500 mt-20">
-          No family members found. Add patients with a Family ID to see insights.
+          {t('family.noMembers')}
         </div>
       </div>
     );
@@ -87,18 +89,18 @@ export default function FamilyInsights() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <MobileHeader title="Family Intelligence" />
+      <MobileHeader title={t('family.familyIntelligence')} />
       <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">Family Intelligence</h1>
+        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">{t('family.familyIntelligence')}</h1>
         <div className="w-6"></div>
       </div>
 
       <div className="px-6 pt-6 space-y-6">
         <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Family ID</label>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">{t('family.familyId')}</label>
           <select
             value={selectedFamilyId}
             onChange={(e) => setSelectedFamilyId(e.target.value)}
@@ -112,8 +114,8 @@ export default function FamilyInsights() {
         {/* Insight Banner */}
         <div className={`${bannerBg} border rounded-2xl p-4 flex gap-4 items-center shadow-sm`}>
           <div>
-            <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${bannerTitle}`}>Family Insight</h3>
-            <p className={`text-lg font-black leading-none ${bannerText}`}>{familyData.riskLevel}</p>
+            <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${bannerTitle}`}>{t('family.familyInsight')}</h3>
+            <p className={`text-lg font-black leading-none ${bannerText}`}>{familyData.riskLevel === 'High' ? t('family.highRisk') : familyData.riskLevel === 'Medium' ? t('family.mediumRisk') : t('family.lowRisk')}</p>
           </div>
           <div className={`w-px h-10 ${bannerLine}`}></div>
           <p className={`text-xs font-semibold leading-relaxed flex-1 ${bannerText}`}>
@@ -122,7 +124,7 @@ export default function FamilyInsights() {
         </div>
 
         <div>
-          <h2 className="text-sm font-bold text-slate-900 mb-3 px-1">Family Members</h2>
+          <h2 className="text-sm font-bold text-slate-900 mb-3 px-1">{t('family.familyMembers')}</h2>
           <div className="space-y-3">
             {familyData.members.map(member => {
               const risk = member.latestScreening?.riskLevel || 'Low';
@@ -138,11 +140,11 @@ export default function FamilyInsights() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">{member.name}</h3>
-                      <p className="text-[10px] text-slate-500 font-medium">{member.age} Y, {member.gender}</p>
+                      <p className="text-[10px] text-slate-500 font-medium">{member.age} {t('family.y')}, {member.gender}</p>
                     </div>
                   </div>
                   
-                  <p className={`text-[10px] font-bold ${riskColors[risk]}`}>{risk} Risk</p>
+                  <p className={`text-[10px] font-bold ${riskColors[risk]}`}>{risk === 'High' ? t('family.highRisk') : risk === 'Medium' ? t('family.mediumRisk') : t('family.lowRisk')}</p>
                 </div>
               );
             })}

@@ -7,10 +7,12 @@ import QRCodeModal from '../components/QRCodeModal';
 import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
+import { useTranslation } from 'react-i18next';
 
 export default function PatientProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [patient, setPatient] = useState(null);
   const [screenings, setScreenings] = useState([]);
   const [followUps, setFollowUps] = useState([]);
@@ -84,19 +86,25 @@ export default function PatientProfile() {
           </button>
         </div>
         <div className="p-6 text-center text-slate-500">
-          <p>Patient not found</p>
+          <p>{t('profile.notFound')}</p>
         </div>
       </div>
     );
   }
 
-  const tabs = ['History', 'AI Insights', 'Family Health', 'Reports', 'Observations'];
+  const tabs = [
+    { id: 'History', label: t('profile.tabs.history') },
+    { id: 'AI Insights', label: t('profile.tabs.insights') },
+    { id: 'Family Health', label: t('profile.tabs.family') },
+    { id: 'Reports', label: t('profile.tabs.reports') },
+    { id: 'Observations', label: t('profile.tabs.observations') }
+  ];
 
   const screeningPoints = screenings.map((s) => ({
     date: new Date(s.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-    risk: s.result?.riskLevel || 'Unknown',
+    risk: s.result?.riskLevel || t('profile.unknown'),
     score: s.result?.confidence || 0,
-    drift: s.result?.trendDirection || s.result?.trend || 'Stable',
+    drift: s.result?.trendDirection || s.result?.trend || t('profile.stable'),
     result: s.result || {}
   }));
 
@@ -196,7 +204,7 @@ export default function PatientProfile() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <MobileHeader 
-        title="Patient Profile" 
+        title={t('profile.profile')} 
         actions={
           <button onClick={() => setShowQRModal(true)} className="text-slate-800 hover:bg-slate-100 p-2 rounded-full transition-colors active:scale-95">
             <QrCode className="w-5 h-5" />
@@ -228,27 +236,27 @@ export default function PatientProfile() {
           )}
           <div>
             <h2 className="text-xl font-bold text-slate-900">{patient.name}</h2>
-            <p className="text-xs text-slate-500 font-medium mb-1">{patient.age} Years, {patient.gender}</p>
-            <p className="text-[10px] text-slate-400">Village: {patient.village} • ID: {patient.healthId || 'SWA-8392'}</p>
+            <p className="text-xs text-slate-500 font-medium mb-1">{patient.age} {t('patients.years')}, {patient.gender === 'Female' ? t('patients.female') : patient.gender || t('patients.female')}</p>
+            <p className="text-[10px] text-slate-400">{t('profile.village')}: {patient.village} • {t('profile.id')}: {patient.healthId || 'SWA-8392'}</p>
           </div>
         </div>
 
         {/* Dynamic 3 Pill Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 text-center flex flex-col justify-center">
-            <p className="text-[10px] text-slate-500 font-medium mb-1">Health Score</p>
+            <p className="text-[10px] text-slate-500 font-medium mb-1">{t('profile.healthScore')}</p>
             <p className="text-xs font-bold text-slate-900">{100 - currentScore}/100</p>
           </div>
           <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 text-center flex flex-col justify-center">
-            <p className="text-[10px] text-slate-500 font-medium mb-1">Risk Level</p>
+            <p className="text-[10px] text-slate-500 font-medium mb-1">{t('profile.riskLevel')}</p>
             <p className={`text-xs font-bold ${latestResult.riskLevel === 'High' || latestResult.riskLevel === 'Critical' ? 'text-red-500' : (latestResult.riskLevel === 'Low' ? 'text-green-500' : 'text-orange-500')}`}>
-              {latestResult.riskLevel || 'Unknown'}
+              {latestResult.riskLevel === 'High' ? t('patients.highRisk') : latestResult.riskLevel === 'Low' ? t('patients.lowRisk') : latestResult.riskLevel === 'Medium' ? t('patients.mediumRisk') : latestResult.riskLevel || t('profile.unknown')}
             </p>
           </div>
           <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 text-center flex flex-col justify-center">
-            <p className="text-[10px] text-slate-500 font-medium mb-1">Trend</p>
+            <p className="text-[10px] text-slate-500 font-medium mb-1">{t('profile.trend')}</p>
             <p className={`text-xs font-bold ${riskClass} flex items-center justify-center gap-1`}>
-              {driftDirection === 'increased' ? 'Declining' : 'Improving'} 
+              {driftDirection === 'increased' ? t('profile.declining') : t('profile.improving')} 
               {driftDirection === 'increased' ? <TrendingDown className="w-3 h-3"/> : <TrendingUp className="w-3 h-3"/>}
             </p>
           </div>
@@ -258,11 +266,11 @@ export default function PatientProfile() {
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {tabs.map(tab => (
             <button 
-              key={tab} 
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${activeTab === tab ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-600 border border-slate-200'}`}
+              key={tab.id} 
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${activeTab === tab.id ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-600 border border-slate-200'}`}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -270,7 +278,7 @@ export default function PatientProfile() {
         {activeTab === 'History' && (
           <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {screenings.length === 0 ? (
-              <div className="text-center text-xs text-slate-500 py-8">No screening history yet.</div>
+              <div className="text-center text-xs text-slate-500 py-8">{t('profile.noHistory')}</div>
             ) : (
               screenings.slice().reverse().map((s) => (
                 <Card key={s._id} className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
@@ -278,11 +286,11 @@ export default function PatientProfile() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-bold text-slate-900">{new Date(s.createdAt).toLocaleDateString()}</p>
-                        <p className="text-[10px] text-slate-500">Risk: {s.result?.riskLevel || 'Unknown'}</p>
+                        <p className="text-[10px] text-slate-500">{t('patients.risk')}: {s.result?.riskLevel || t('profile.unknown')}</p>
                       </div>
-                      <span className="text-[10px] font-semibold text-slate-600">{s.result?.trendDirection || s.result?.trend || 'Stable'}</span>
+                      <span className="text-[10px] font-semibold text-slate-600">{s.result?.trendDirection || s.result?.trend || t('profile.stable')}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-2">{s.result?.reason || 'No notes available.'}</p>
+                    <p className="text-[10px] text-slate-500 mt-2">{s.result?.reason || t('profile.noNotes')}</p>
                   </CardContent>
                 </Card>
               ))
@@ -296,7 +304,7 @@ export default function PatientProfile() {
             <div className={`p-3 rounded-xl border ${driftDirection === 'increased' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-green-50 border-green-100 text-green-700'}`}>
               <p className="text-xs font-bold flex items-center gap-2">
                 {driftDirection === 'increased' ? <TrendingUp className="w-4 h-4"/> : <TrendingDown className="w-4 h-4"/>}
-                Risk {driftDirection} over the last 14 days.
+                {driftDirection === 'increased' ? t('profile.riskIncreased') : t('profile.riskDecreased')}
               </p>
             </div>
 
@@ -304,9 +312,9 @@ export default function PatientProfile() {
             <Card className="bg-white shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 rounded-2xl">
               <CardContent className="p-5">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-sm font-semibold text-slate-900">AI Drift Graph</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">{t('profile.driftGraph')}</h3>
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${driftDirection === 'increased' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                    {driftDirection === 'increased' ? 'Critical Drift' : 'Stable'}
+                    {driftDirection === 'increased' ? t('profile.criticalDrift') : t('profile.stable')}
                   </span>
                 </div>
                 
@@ -318,29 +326,29 @@ export default function PatientProfile() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-medium">Drift Status</p>
-                  <p className={`text-xs font-bold ${latestResult.driftStatus === 'Declining' || latestResult.driftStatus === 'Critical Drift' ? 'text-red-500' : 'text-slate-600'}`}>{latestResult.driftStatus || 'Stable'}</p>
+                  <p className="text-[10px] text-slate-500 font-medium">{t('profile.driftStatus')}</p>
+                  <p className={`text-xs font-bold ${latestResult.driftStatus === 'Declining' || latestResult.driftStatus === 'Critical Drift' ? 'text-red-500' : 'text-slate-600'}`}>{latestResult.driftStatus === 'Declining' ? t('profile.declining') : latestResult.driftStatus === 'Critical Drift' ? t('profile.criticalDrift') : t('profile.stable')}</p>
                 </div>
                 {latestResult.driftStatus === 'Declining' || latestResult.driftStatus === 'Critical Drift' ? <TrendingDown className="w-4 h-4 text-red-400" /> : <Minus className="w-4 h-4 text-slate-400" />}
               </div>
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-medium">Sleep Trend</p>
-                  <p className="text-xs font-bold text-slate-600">{latestResult.currentData?.sleep || 'Unknown'}</p>
+                  <p className="text-[10px] text-slate-500 font-medium">{t('profile.sleepTrend')}</p>
+                  <p className="text-xs font-bold text-slate-600">{latestResult.currentData?.sleep || t('profile.unknown')}</p>
                 </div>
                 <Minus className="w-4 h-4 text-slate-400" />
               </div>
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-medium">Appetite Trend</p>
-                  <p className="text-xs font-bold text-slate-600">{latestResult.currentData?.appetite || 'Unknown'}</p>
+                  <p className="text-[10px] text-slate-500 font-medium">{t('profile.appetiteTrend')}</p>
+                  <p className="text-xs font-bold text-slate-600">{latestResult.currentData?.appetite || t('profile.unknown')}</p>
                 </div>
                 <Minus className="w-4 h-4 text-slate-400" />
               </div>
               <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-500 font-medium">Action Needed</p>
-                  <p className="text-[10px] font-bold text-red-500 truncate w-16">{latestResult.nextAction || 'Monitor'}</p>
+                  <p className="text-[10px] text-slate-500 font-medium">{t('profile.actionNeeded')}</p>
+                  <p className="text-[10px] font-bold text-red-500 truncate w-16">{latestResult.nextAction || t('profile.monitor')}</p>
                 </div>
                 <TrendingDown className="w-4 h-4 text-red-400" />
               </div>
@@ -351,12 +359,12 @@ export default function PatientProfile() {
         {activeTab === 'Family Health' && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {!familyData ? (
-              <div className="text-center text-xs text-slate-500 py-8">No family data available.</div>
+              <div className="text-center text-xs text-slate-500 py-8">{t('profile.noFamilyData')}</div>
             ) : (
               <Card className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-slate-900">Family ID</p>
+                    <p className="text-xs font-bold text-slate-900">{t('profile.familyId')}</p>
                     <p className="text-xs font-semibold text-slate-600">{familyData.familyId}</p>
                   </div>
                   <p className="text-[10px] text-slate-500">{familyData.insight}</p>
@@ -364,7 +372,7 @@ export default function PatientProfile() {
                     {familyData.members?.map((member) => (
                       <div key={member._id} className="flex items-center justify-between text-[10px]">
                         <span className="text-slate-700 font-semibold">{member.name}</span>
-                        <span className="text-slate-500">{member.latestScreening?.riskLevel || 'Unknown'} Risk</span>
+                        <span className="text-slate-500">{member.latestScreening?.riskLevel === 'High' ? t('patients.highRisk') : member.latestScreening?.riskLevel === 'Medium' ? t('patients.mediumRisk') : member.latestScreening?.riskLevel === 'Low' ? t('patients.lowRisk') : `${member.latestScreening?.riskLevel || t('profile.unknown')} ${t('patients.risk')}`}</span>
                       </div>
                     ))}
                   </div>
@@ -378,18 +386,18 @@ export default function PatientProfile() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <Card className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <CardContent className="p-4">
-                <p className="text-xs font-bold text-slate-900 mb-1">Screenings</p>
-                <p className="text-[10px] text-slate-500">Total screenings: {screenings.length}</p>
+                <p className="text-xs font-bold text-slate-900 mb-1">{t('profile.screenings')}</p>
+                <p className="text-[10px] text-slate-500">{t('profile.totalScreenings')}: {screenings.length}</p>
                 {screenings.length > 0 && (
-                  <p className="text-[10px] text-slate-500">Last screening: {new Date(screenings[screenings.length - 1].createdAt).toLocaleDateString()}</p>
+                  <p className="text-[10px] text-slate-500">{t('profile.lastScreening')}: {new Date(screenings[screenings.length - 1].createdAt).toLocaleDateString()}</p>
                 )}
               </CardContent>
             </Card>
             <Card className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <CardContent className="p-4">
-                <p className="text-xs font-bold text-slate-900 mb-2">Follow-ups</p>
+                <p className="text-xs font-bold text-slate-900 mb-2">{t('profile.followups')}</p>
                 {followUps.length === 0 ? (
-                  <p className="text-[10px] text-slate-500">No follow-ups recorded.</p>
+                  <p className="text-[10px] text-slate-500">{t('profile.noFollowups')}</p>
                 ) : (
                   followUps.slice(0, 5).map((f) => (
                     <div key={f._id} className="flex items-center justify-between text-[10px] text-slate-600 mb-1">
@@ -407,12 +415,12 @@ export default function PatientProfile() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <Card className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <CardContent className="p-4 space-y-3">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Add Observation</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">{t('profile.addObservation')}</label>
                 <textarea
                   value={noteInput}
                   onChange={(e) => setNoteInput(e.target.value)}
                   className="w-full h-24 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800"
-                  placeholder="Add a field note..."
+                  placeholder={t('profile.addFieldNote')}
                 />
                 <Button
                   onClick={async () => {
@@ -432,14 +440,14 @@ export default function PatientProfile() {
                   className="h-10 text-xs font-semibold rounded-xl"
                   disabled={savingNote}
                 >
-                  {savingNote ? 'Saving...' : 'Save Observation'}
+                  {savingNote ? t('profile.saving') : t('profile.saveObservation')}
                 </Button>
               </CardContent>
             </Card>
 
             <div className="space-y-2">
               {(patient.observations || []).length === 0 ? (
-                <div className="text-center text-xs text-slate-500 py-6">No observations yet.</div>
+                <div className="text-center text-xs text-slate-500 py-6">{t('profile.noObservations')}</div>
               ) : (
                 patient.observations.slice().reverse().map((o, index) => (
                   <Card key={`${o.createdAt}-${index}`} className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
@@ -457,7 +465,7 @@ export default function PatientProfile() {
         {/* Action Buttons */}
         <div className="flex gap-3 mt-6">
           <Button className="flex-1 h-12 text-sm font-semibold shadow-lg shadow-primary/30 rounded-xl" onClick={() => navigate(`/patients/${id}/screen`)}>
-            Start Full Screening
+            {t('profile.startScreening')}
           </Button>
           <Button
             variant="danger"
@@ -465,7 +473,7 @@ export default function PatientProfile() {
             onClick={handleDeletePatient}
             disabled={deletingPatient}
           >
-            {deletingPatient ? 'Deleting...' : 'Delete Patient'}
+            {deletingPatient ? t('profile.deleting') : t('profile.deletePatient')}
           </Button>
         </div>
       </div>

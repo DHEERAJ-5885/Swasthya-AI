@@ -7,8 +7,10 @@ import toast from 'react-hot-toast';
 import MobileHeader from '../components/MobileHeader';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { useTranslation } from 'react-i18next';
 
 export default function Reports() {
+  const { t } = useTranslation();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,13 +23,13 @@ export default function Reports() {
         setLoading(false);
       })
       .catch(err => {
-        toast.error('Failed to load reports');
+        toast.error(t('reports.errLoad'));
         setLoading(false);
       });
   }, []);
 
   const downloadPDF = (report) => {
-    toast.success('Generating PDF...');
+    toast.success(t('reports.generatingPdf'));
     
     try {
       const doc = new jsPDF();
@@ -37,17 +39,17 @@ export default function Reports() {
       doc.rect(0, 0, 210, 30, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(20);
-      doc.text('Swasthya AI Health Report', 15, 20);
+      doc.text(t('reports.reportTitlePdf'), 15, 20);
       
       doc.setTextColor(50, 50, 50);
       doc.setFontSize(14);
       doc.text(report.title, 15, 45);
       
       doc.setFontSize(10);
-      doc.text(`Patient: ${report.patientName}`, 15, 55);
-      doc.text(`Village: ${report.village}`, 15, 62);
-      doc.text(`Date: ${report.date}`, 15, 69);
-      doc.text(`Risk Level: ${report.riskLevel}`, 15, 76);
+      doc.text(`${t('reports.patientPdf')}${report.patientName}`, 15, 55);
+      doc.text(`${t('reports.villagePdf')}${report.village}`, 15, 62);
+      doc.text(`${t('reports.datePdf')}${report.date}`, 15, 69);
+      doc.text(`${t('reports.riskLevelPdf')}${report.riskLevel}`, 15, 76);
       
       // AutoTable for Vitals/Symptoms
       const tableData = [];
@@ -63,7 +65,7 @@ export default function Reports() {
       if (tableData.length > 0) {
         doc.autoTable({
           startY: 85,
-          head: [['Metric / Symptom', 'Value']],
+          head: [[t('reports.metricSymptomPdf'), t('reports.valuePdf')]],
           body: tableData,
           theme: 'grid',
           headStyles: { fillColor: [79, 70, 229] }
@@ -74,28 +76,28 @@ export default function Reports() {
       const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : 90;
       doc.setFontSize(12);
       doc.setTextColor(79, 70, 229);
-      doc.text('AI Health Assessment', 15, finalY);
+      doc.text(t('reports.aiHealthAssessmentPdf'), 15, finalY);
       
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
       
-      const splitExplanation = doc.splitTextToSize(`Explanation: ${report.explanation}`, 180);
+      const splitExplanation = doc.splitTextToSize(`${t('reports.explanationPdf')}${report.explanation}`, 180);
       doc.text(splitExplanation, 15, finalY + 8);
       
       const nextActionY = finalY + 8 + (splitExplanation.length * 5) + 5;
-      const splitAction = doc.splitTextToSize(`Recommendation: ${report.recommendation}`, 180);
+      const splitAction = doc.splitTextToSize(`${t('reports.recommendationPdf')}${report.recommendation}`, 180);
       doc.text(splitAction, 15, nextActionY);
 
       // Footer
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
-      doc.text('Generated automatically by Swasthya AI Platform', 105, 290, { align: 'center' });
+      doc.text(t('reports.footerPdf'), 105, 290, { align: 'center' });
 
       doc.save(`Swasthya_Report_${report.patientName.replace(/\s+/g, '_')}_${report.date.replace(/\//g, '-')}.pdf`);
-      toast.success('Report downloaded successfully!');
+      toast.success(t('reports.downloadSuccess'));
     } catch (e) {
       console.error(e);
-      toast.error('Failed to generate PDF');
+      toast.error(t('reports.downloadFail'));
     }
   };
 
@@ -114,14 +116,14 @@ export default function Reports() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 md:pl-64 flex flex-col md:flex-row">
-      <MobileHeader title="Health Reports" />
+      <MobileHeader title={t('reports.healthReports')} />
       
       {/* Left List Pane */}
       <div className="w-full md:w-[400px] lg:w-[450px] border-r border-slate-200 bg-[#F8FAFC] flex flex-col h-screen md:sticky md:top-0">
         <div className="p-6 pb-4 bg-[#F8FAFC]/80 backdrop-blur-md z-10 border-b border-slate-100 sticky top-[60px] md:top-0">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Health Reports</h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">Automated Clinical Summaries</p>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">{t('reports.healthReports')}</h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">{t('reports.clinicalSummaries')}</p>
           </div>
           
           <div className="mt-2 md:mt-5 flex gap-2">
@@ -129,7 +131,7 @@ export default function Reports() {
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
                 type="text" 
-                placeholder="Search reports..."
+                placeholder={t('reports.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
@@ -175,8 +177,8 @@ export default function Reports() {
               <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <FileText className="w-5 h-5 text-slate-400" />
               </div>
-              <p className="text-sm font-bold text-slate-600">No Reports Found</p>
-              <p className="text-xs text-slate-400 mt-1">Try a different search term</p>
+              <p className="text-sm font-bold text-slate-600">{t('reports.noReports')}</p>
+              <p className="text-xs text-slate-400 mt-1">{t('reports.tryDifferent')}</p>
             </div>
           )}
         </div>
@@ -192,7 +194,7 @@ export default function Reports() {
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${
                     selectedReport.riskLevel === 'High' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
                   }`}>
-                    {selectedReport.riskLevel} Risk
+                    {selectedReport.riskLevel} {t('reports.risk')}
                   </span>
                   <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-md uppercase tracking-wider">
                     {selectedReport.status}
@@ -204,7 +206,7 @@ export default function Reports() {
                 onClick={() => downloadPDF(selectedReport)}
                 className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all shrink-0"
               >
-                <Download className="w-4 h-4" /> Download PDF
+                <Download className="w-4 h-4" /> {t('reports.downloadPdfBtn')}
               </button>
             </div>
 
@@ -212,19 +214,19 @@ export default function Reports() {
               {/* Patient Meta */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Patient Name</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('reports.patientName')}</p>
                   <p className="text-sm font-bold text-slate-900">{selectedReport.patientName}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Village</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('reports.village')}</p>
                   <p className="text-sm font-bold text-slate-900">{selectedReport.village}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Date</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('reports.date')}</p>
                   <p className="text-sm font-bold text-slate-900">{selectedReport.date}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Report ID</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('reports.reportId')}</p>
                   <p className="text-sm font-bold text-slate-900">#{selectedReport.id.substring(0,6).toUpperCase()}</p>
                 </div>
               </div>
@@ -234,7 +236,7 @@ export default function Reports() {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <Activity className="w-5 h-5 text-primary" />
-                    <h3 className="text-sm font-bold text-slate-900">AI Clinical Assessment</h3>
+                    <h3 className="text-sm font-bold text-slate-900">{t('reports.aiClinicalAssessment')}</h3>
                   </div>
                   <p className="text-sm text-slate-700 leading-relaxed font-medium mb-6">
                     {selectedReport.explanation}
@@ -243,7 +245,7 @@ export default function Reports() {
                   <div className="bg-white rounded-xl p-4 border border-primary/10">
                     <div className="flex items-center gap-2 mb-2">
                       <ShieldAlert className="w-4 h-4 text-orange-500" />
-                      <p className="text-xs font-bold text-slate-900 uppercase">Recommended Action</p>
+                      <p className="text-xs font-bold text-slate-900 uppercase">{t('reports.recommendedAction')}</p>
                     </div>
                     <p className="text-sm text-slate-700 font-semibold">{selectedReport.recommendation}</p>
                   </div>
@@ -253,13 +255,13 @@ export default function Reports() {
               {/* Raw Data Table */}
               {selectedReport.data && (
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 mb-4 px-1">Recorded Vitals & Symptoms</h3>
+                  <h3 className="text-sm font-bold text-slate-900 mb-4 px-1">{t('reports.recordedVitals')}</h3>
                   <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-100">
-                          <th className="py-3 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Metric</th>
-                          <th className="py-3 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Value</th>
+                          <th className="py-3 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('reports.metric')}</th>
+                          <th className="py-3 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('reports.value')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -285,8 +287,8 @@ export default function Reports() {
             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
               <FileText className="w-8 h-8 text-slate-300" />
             </div>
-            <h2 className="text-lg font-bold text-slate-700 mb-1">Select a Report</h2>
-            <p className="text-sm text-slate-500 max-w-sm">Choose a health report from the list on the left to view detailed insights and export to PDF.</p>
+            <h2 className="text-lg font-bold text-slate-700 mb-1">{t('reports.selectReport')}</h2>
+            <p className="text-sm text-slate-500 max-w-sm">{t('reports.selectReportDesc')}</p>
           </div>
         )}
       </div>

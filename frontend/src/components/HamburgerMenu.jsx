@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,7 @@ export default function HamburgerMenu() {
   const location = useLocation();
   const worker = JSON.parse(localStorage.getItem('worker') || '{}');
   const { clearAuth } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
@@ -30,16 +32,16 @@ export default function HamburgerMenu() {
   }, [isOpen]);
 
   const menuItems = [
-    { icon: Home, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'Patients', path: '/patients' },
-    { icon: Stethoscope, label: 'Screening', path: '/patients/add' },
-    { icon: BrainCircuit, label: 'AI Insights', path: '/ai-insights' },
-    { icon: AlertCircle, label: 'Alerts', path: '/alerts' },
-    { icon: UsersRound, label: 'Family Insights', path: '/family-insights' },
-    { icon: Activity, label: 'Community Risk', path: '/community-risk' },
-    { icon: BarChart2, label: 'Analytics', path: '/analytics' },
-    { icon: FileText, label: 'Reports', path: '/reports' },
-    { icon: MessageSquare, label: 'Messages', path: '/messages' }
+    { icon: Home, label: t('nav.dashboard'), path: '/' },
+    { icon: Users, label: t('nav.patients'), path: '/patients' },
+    { icon: Stethoscope, label: t('nav.screenings'), path: '/screenings' },
+    { icon: BrainCircuit, label: t('dashboard.aiHealthInsights'), path: '/ai-insights' },
+    { icon: AlertCircle, label: t('nav.alerts'), path: '/alerts' },
+    { icon: UsersRound, label: t('nav.familyInsights'), path: '/family-insights' },
+    { icon: Activity, label: t('nav.communityRisk'), path: '/community-risk' },
+    { icon: BarChart2, label: t('nav.analytics'), path: '/analytics' },
+    { icon: FileText, label: t('nav.reports'), path: '/reports' },
+    { icon: MessageSquare, label: t('nav.aiAssistant'), path: '/ai-assistant' }
   ];
 
   const handleNavigation = (path) => {
@@ -112,7 +114,7 @@ export default function HamburgerMenu() {
 
             {/* Scrollable Navigation */}
             <div className="flex-1 overflow-y-auto scrollbar-hide py-4 px-3 space-y-1 bg-white">
-              <p className="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Main Menu</p>
+              <p className="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('nav.mainMenu')}</p>
               {menuItems.map((item) => {
                 const active = isActive(item.path);
                 return (
@@ -139,14 +141,14 @@ export default function HamburgerMenu() {
                 className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-700 hover:bg-slate-100 transition-colors bg-white border border-slate-200 shadow-sm"
               >
                 <User className="w-5 h-5 opacity-70" />
-                <span className="font-bold text-sm">Account Settings</span>
+                <span className="font-bold text-sm">{t('nav.accountSettings')}</span>
               </button>
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent"
               >
                 <LogOut className="w-5 h-5 opacity-80" />
-                <span className="font-bold text-sm">Sign Out</span>
+                <span className="font-bold text-sm">{t('nav.logout')}</span>
               </button>
             </div>
           </motion.div>

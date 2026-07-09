@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import LanguageSelector from '../components/LanguageSelector';
 import { useLanguage } from '../context/LanguageContext';
-import { t } from '../utils/i18n';
+import { useTranslation } from 'react-i18next';
 
 export default function AshaWorkerProfile() {
   const [worker, setWorker] = useState(null);
@@ -19,6 +19,7 @@ export default function AshaWorkerProfile() {
   const [photoPreview, setPhotoPreview] = useState(null);
   const navigate = useNavigate();
   const { language, setLanguage, getLanguageLabel } = useLanguage();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchProfile();
@@ -45,7 +46,7 @@ export default function AshaWorkerProfile() {
   const handleSaveProfile = async () => {
     // Validation
     if (editData.phone && !/^\d{10}$/.test(editData.phone)) {
-      toast.error('Phone number must be exactly 10 digits');
+      toast.error(t('profile.phoneInvalid'));
       return;
     }
     
@@ -57,13 +58,13 @@ export default function AshaWorkerProfile() {
       if (photoPreview) payload.profilePhoto = photoPreview; // Mocking photo save
 
       await api.put('/auth/profile', payload);
-      toast.success('Profile updated successfully');
+      toast.success(t('profile.profileSuccess'));
       setWorker(payload);
       setIsEditing(false);
       setNewPassword('');
       setLoading(false);
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to update profile');
+      toast.error(err.response?.data?.error || t('profile.profileFail'));
       setLoading(false);
     }
   };
@@ -94,10 +95,10 @@ export default function AshaWorkerProfile() {
   const handleClaimPatients = async () => {
     try {
       const res = await api.post('/patients/assign-existing');
-      toast.success(`Assigned ${res.data.updated} patient(s) to your account`);
+      toast.success(t('profile.claimSuccess', { count: res.data.updated }));
       fetchProfile();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to assign patients');
+      toast.error(err.response?.data?.error || t('profile.claimFail'));
     }
   };
 
@@ -105,7 +106,7 @@ export default function AshaWorkerProfile() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
-        <p className="text-slate-600">{t('profileLoading', language)}</p>
+        <p className="text-slate-600">{t('profile.profileLoading')}</p>
       </div>
     );
   }
@@ -113,7 +114,7 @@ export default function AshaWorkerProfile() {
   if (!worker) {
     return (
       <div className="p-4 text-center">
-        <p className="text-slate-600">{t('profileNotFound', language)}</p>
+        <p className="text-slate-600">{t('profile.profileNotFound')}</p>
       </div>
     );
   }
@@ -158,7 +159,7 @@ export default function AshaWorkerProfile() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-primary" />
-            <span className="text-xs font-semibold text-slate-600">{t('totalPatients', language)}</span>
+            <span className="text-xs font-semibold text-slate-600">{t('profile.totalPatients')}</span>
           </div>
           <p className="text-2xl font-bold text-slate-900">{worker.stats?.totalPatients || 0}</p>
         </Card>
@@ -166,7 +167,7 @@ export default function AshaWorkerProfile() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Activity className="w-5 h-5 text-red-500" />
-            <span className="text-xs font-semibold text-slate-600">{t('highRisk', language)}</span>
+            <span className="text-xs font-semibold text-slate-600">{t('profile.highRisk')}</span>
           </div>
           <p className="text-2xl font-bold text-red-600">{worker.stats?.highRiskPatients || 0}</p>
         </Card>
@@ -174,7 +175,7 @@ export default function AshaWorkerProfile() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-5 h-5 text-green-500" />
-            <span className="text-xs font-semibold text-slate-600">{t('followUpRate', language)}</span>
+            <span className="text-xs font-semibold text-slate-600">{t('profile.followUpRate')}</span>
           </div>
           <p className="text-2xl font-bold text-green-600">{worker.stats?.followUpCompletionRate || 0}%</p>
         </Card>
@@ -182,7 +183,7 @@ export default function AshaWorkerProfile() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5 text-blue-500" />
-            <span className="text-xs font-semibold text-slate-600">{t('screensThisMonth', language)}</span>
+            <span className="text-xs font-semibold text-slate-600">{t('profile.screensThisMonth')}</span>
           </div>
           <p className="text-2xl font-bold text-blue-600">{worker.stats?.screensThisMonth || 0}</p>
         </Card>
@@ -193,7 +194,7 @@ export default function AshaWorkerProfile() {
         {isEditing ? (
           <Card className="p-5 space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('phone', language)}</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('profile.phone')}</label>
               <input
                 type="tel"
                 value={editData.phone || ''}
@@ -202,7 +203,7 @@ export default function AshaWorkerProfile() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('email', language)}</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('profile.email')}</label>
               <input
                 type="email"
                 value={editData.email || ''}
@@ -211,7 +212,7 @@ export default function AshaWorkerProfile() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('village', language)}</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('profile.village')}</label>
               <input
                 type="text"
                 value={editData.village || ''}
@@ -220,7 +221,7 @@ export default function AshaWorkerProfile() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('language', language)}</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('profile.language')}</label>
               <select
                 value={editData.language || language || 'en'}
                 onChange={(e) => handleLanguageChange(e.target.value)}
@@ -232,12 +233,12 @@ export default function AshaWorkerProfile() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">New Password</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase">{t('profile.newPassword')}</label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Leave blank to keep current"
+                placeholder={t('profile.leaveBlank')}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary"
               />
             </div>
@@ -245,19 +246,19 @@ export default function AshaWorkerProfile() {
         ) : (
           <Card className="p-5 space-y-3">
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase">{t('phone', language)}</p>
-              <p className="text-slate-900 font-medium">{worker.phone || t('notSet', language)}</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase">{t('profile.phone')}</p>
+              <p className="text-slate-900 font-medium">{worker.phone || t('profile.notSet')}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase">{t('email', language)}</p>
-              <p className="text-slate-900 font-medium">{worker.email || t('notSet', language)}</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase">{t('profile.email')}</p>
+              <p className="text-slate-900 font-medium">{worker.email || t('profile.notSet')}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase">{t('village', language)}</p>
-              <p className="text-slate-900 font-medium">{worker.village || t('notSet', language)}</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase">{t('profile.village')}</p>
+              <p className="text-slate-900 font-medium">{worker.village || t('profile.notSet')}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase">{t('language', language)}</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase">{t('profile.language')}</p>
               <p className="text-slate-900 font-medium">{getLanguageLabel(worker.language || language)}</p>
             </div>
           </Card>
@@ -269,11 +270,11 @@ export default function AshaWorkerProfile() {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase">{t('enrolledPatients', language)}</p>
-              <p className="text-sm font-medium text-slate-900">{worker.stats?.totalPatients || 0} {t('patients', language)}</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase">{t('profile.enrolledPatients')}</p>
+              <p className="text-sm font-medium text-slate-900">{worker.stats?.totalPatients || 0} {t('profile.patients')}</p>
             </div>
             <div>
-              <button onClick={() => navigate('/patients')} className="text-sm font-semibold text-primary">{t('viewAll', language)}</button>
+              <button onClick={() => navigate('/patients')} className="text-sm font-semibold text-primary">{t('profile.viewAll')}</button>
             </div>
           </div>
 
@@ -287,13 +288,13 @@ export default function AshaWorkerProfile() {
                   </div>
                   <div className="text-right">
                     <p className={`text-xs font-bold ${p.risk === 'High' || p.risk === 'Critical' ? 'text-red-600' : p.risk === 'Medium' ? 'text-orange-500' : 'text-green-600'}`}>{p.risk} Risk</p>
-                    <p className="text-[10px] text-slate-400">{p.lastScreenedAt ? new Date(p.lastScreenedAt).toLocaleDateString() : t('neverScreened', language)}</p>
+                    <p className="text-[10px] text-slate-400">{p.lastScreenedAt ? new Date(p.lastScreenedAt).toLocaleDateString() : t('profile.neverScreened')}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 text-slate-500">{t('noEnrolledPatients', language)}</div>
+            <div className="text-center py-6 text-slate-500">{t('profile.noEnrolledPatients')}</div>
           )}
         </Card>
       </div>
@@ -302,11 +303,11 @@ export default function AshaWorkerProfile() {
       <div className="px-4">
         <Card className="p-5 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase">{t('settings', language)}</p>
-            <p className="text-sm font-semibold text-slate-900">{t('appLanguage', language)}</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase">{t('profile.settings')}</p>
+            <p className="text-sm font-semibold text-slate-900">{t('profile.appLanguage')}</p>
           </div>
           <LanguageSelector
-            label={t('language', language)}
+            label={t('profile.language')}
             showLabel={false}
             selectClassName="bg-white"
             onChange={handleLanguageChange}
@@ -322,17 +323,17 @@ export default function AshaWorkerProfile() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  {t('saving', language)}
+                  {t('profile.saving')}
                 </>
               ) : (
-                t('saveChanges', language)
+                t('profile.saveChanges')
               )}
             </Button>
             <button
               onClick={() => setIsEditing(false)}
               className="w-full py-3 px-4 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50"
             >
-              {t('cancel', language)}
+              {t('profile.cancel')}
             </button>
           </>
         ) : (
@@ -343,19 +344,19 @@ export default function AshaWorkerProfile() {
               className="w-full flex items-center gap-2 justify-center"
             >
               <Edit2 className="w-4 h-4" />
-              {t('editProfile', language)}
+              {t('profile.editProfile')}
             </Button>
             <button
               onClick={handleLogout}
               className="w-full py-3 px-4 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 flex items-center gap-2 justify-center"
             >
               <LogOut className="w-4 h-4" />
-              {t('logout', language)}
+              {t('profile.logout')}
             </button>
           </>
         )}
         <Button onClick={handleClaimPatients} variant="secondary" className="w-full">
-          {t('claimPatients', language)}
+          {t('profile.claimPatients')}
         </Button>
       </div>
     </div>

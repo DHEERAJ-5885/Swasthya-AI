@@ -31,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/notifications', authMiddleware, notificationRoutes);
 app.use('/api/patients', authMiddleware, patientRoutes);
 app.use('/api/analyze', authMiddleware, screeningRoutes);
+app.use('/api/screenings', authMiddleware, screeningRoutes);
 app.use('/api/followups', authMiddleware, followUpRoutes);
 app.use('/api/family', authMiddleware, familyRoutes);
 app.use('/api/community-risk', authMiddleware, communityRoutes);

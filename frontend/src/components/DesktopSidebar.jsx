@@ -4,12 +4,11 @@ import {
   Home, Users, Stethoscope, Bell, Activity, UsersRound as FamilyIcon, 
   LogOut, Settings, BarChart2, FileText, MessageSquare, ShieldPlus, ChevronDown
 } from 'lucide-react';
-import { t } from '../utils/i18n';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 export default function DesktopSidebar() {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { t } = useTranslation();
   const worker = JSON.parse(localStorage.getItem('worker') || '{}');
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -28,16 +27,16 @@ export default function DesktopSidebar() {
   };
 
   const navItems = [
-    { icon: Home, label: t('dashboard', language), path: '/' },
-    { icon: Users, label: t('patients', language), path: '/patients' },
-    { icon: Stethoscope, label: t('screenings', language) || 'Screenings', path: '/screenings' },
-    { icon: Bell, label: 'Alerts', path: '/alerts', badge: unreadCount > 0 ? unreadCount : null },
-    { icon: FamilyIcon, label: 'Family Insights', path: '/family-insights' },
-    { icon: Activity, label: 'Community Risk', path: '/community-risk' },
-    { icon: BarChart2, label: 'Analytics', path: '/analytics' },
-    { icon: FileText, label: 'Reports', path: '/reports' },
-    { icon: MessageSquare, label: 'Messages', path: '/messages' },
-    { icon: Settings, label: 'Settings', path: '/profile' },
+    { icon: Home, label: t('nav.dashboard'), path: '/' },
+    { icon: Users, label: t('nav.patients'), path: '/patients' },
+    { icon: Stethoscope, label: t('nav.screenings'), path: '/screenings' },
+    { icon: Bell, label: t('nav.alerts'), path: '/alerts', badge: unreadCount > 0 ? unreadCount : null },
+    { icon: FamilyIcon, label: t('nav.familyInsights'), path: '/family-insights' },
+    { icon: Activity, label: t('nav.communityRisk'), path: '/community-risk' },
+    { icon: BarChart2, label: t('nav.analytics'), path: '/analytics' },
+    { icon: FileText, label: t('nav.reports'), path: '/reports' },
+    { icon: MessageSquare, label: t('nav.aiAssistant'), path: '/ai-assistant' },
+    { icon: Settings, label: t('nav.settings'), path: '/profile' },
   ];
 
   return (
@@ -114,7 +113,7 @@ export default function DesktopSidebar() {
           className="flex items-center gap-3 px-4 py-3 mt-2 w-full text-left rounded-xl text-red-500 hover:bg-red-50 transition-colors font-semibold text-sm"
         >
           <LogOut className="w-5 h-5" />
-          <span>Logout</span>
+          <span>{t('nav.logout')}</span>
         </button>
       </div>
     </aside>

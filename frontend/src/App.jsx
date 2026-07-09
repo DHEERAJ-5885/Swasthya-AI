@@ -7,6 +7,7 @@ import AddPatient from './pages/AddPatient';
 import PatientList from './pages/PatientList';
 import PatientProfile from './pages/PatientProfile';
 import ScreeningFlow from './pages/ScreeningFlow';
+import ScreeningsList from './pages/ScreeningsList';
 import ResultScreen from './pages/ResultScreen';
 import FollowUpList from './pages/FollowUpList';
 import ScheduleFollowUp from './pages/ScheduleFollowUp';
@@ -19,7 +20,7 @@ import PublicPatientCard from './pages/PublicPatientCard';
 import AIInsights from './pages/AIInsights';
 import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
-import Messages from './pages/Messages';
+import AIAssistantPage from './pages/AIAssistantPage';
 import HamburgerMenu from './components/HamburgerMenu';
 import AIAssistant from './components/AIAssistant';
 import BottomNav from './components/BottomNav';
@@ -82,6 +83,7 @@ function AppShell() {
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><AshaWorkerProfile /></PrivateRoute>} />
           <Route path="/patients" element={<PrivateRoute><PatientList /></PrivateRoute>} />
+          <Route path="/screenings" element={<PrivateRoute><ScreeningsList /></PrivateRoute>} />
           <Route path="/patients/add" element={<PrivateRoute><AddPatient /></PrivateRoute>} />
           <Route path="/patients/:id" element={<PrivateRoute><PatientProfile /></PrivateRoute>} />
           <Route path="/patients/:id/screen" element={<PrivateRoute><ScreeningFlow /></PrivateRoute>} />
@@ -95,7 +97,7 @@ function AppShell() {
           <Route path="/ai-insights" element={<PrivateRoute><AIInsights /></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
           <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
-          <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
+          <Route path="/ai-assistant" element={<PrivateRoute><AIAssistantPage /></PrivateRoute>} />
         </Routes>
       </main>
       

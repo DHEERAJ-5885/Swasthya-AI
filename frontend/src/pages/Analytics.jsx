@@ -9,8 +9,10 @@ import {
 import api from '../api';
 import toast from 'react-hot-toast';
 import MobileHeader from '../components/MobileHeader';
+import { useTranslation } from 'react-i18next';
 
 export default function Analytics() {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7 Days');
@@ -22,7 +24,7 @@ export default function Analytics() {
         setLoading(false);
       })
       .catch(err => {
-        toast.error('Failed to load analytics');
+        toast.error(t('analytics.errLoad'));
         setLoading(false);
       });
   }, []);
@@ -49,19 +51,19 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 md:pl-64">
-      <MobileHeader title="Analytics" />
+      <MobileHeader title={t('analytics.analyticsTitle')} />
       {/* Header */}
       <div className="px-6 py-5 hidden md:flex items-center justify-between sticky top-0 bg-[#F8FAFC]/80 backdrop-blur-md z-10 border-b border-slate-100">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Analytics Overview</h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">Performance & Health Trends</p>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">{t('analytics.overview')}</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">{t('analytics.trends')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
             {timeRange} <ChevronDown className="w-4 h-4 text-slate-400" />
           </button>
           <button className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md shadow-primary/20 transition-all">
-            <Download className="w-4 h-4" /> Export CSV
+            <Download className="w-4 h-4" /> {t('analytics.exportCsv')}
           </button>
         </div>
       </div>
@@ -74,10 +76,10 @@ export default function Analytics() {
       >
         {/* KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="Total Patients" value={data.totalPatients} icon={Users} color="blue" trend="+12%" />
-          <KpiCard title="Weekly Screenings" value={data.weeklyScreenings.reduce((a, b) => a + b.count, 0)} icon={Activity} color="emerald" trend="+5%" />
-          <KpiCard title="Follow-up Rate" value="82%" icon={TrendingUp} color="orange" trend="+2%" />
-          <KpiCard title="Avg Risk Score" value="34/100" icon={Activity} color="red" trend="-5%" />
+          <KpiCard title={t('analytics.totalPatients')} value={data.totalPatients} icon={Users} color="blue" trend="+12%" />
+          <KpiCard title={t('analytics.weeklyScreenings')} value={data.weeklyScreenings.reduce((a, b) => a + b.count, 0)} icon={Activity} color="emerald" trend="+5%" />
+          <KpiCard title={t('analytics.followUpRate')} value="82%" icon={TrendingUp} color="orange" trend="+2%" />
+          <KpiCard title={t('analytics.avgRiskScore')} value="34/100" icon={Activity} color="red" trend="-5%" />
         </div>
 
         {/* Charts Row 1 */}
@@ -88,8 +90,8 @@ export default function Analytics() {
               <CardContent className="p-6 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Screening Volume</h3>
-                    <p className="text-[11px] text-slate-500">Number of patient screenings over last 7 days</p>
+                    <h3 className="text-sm font-bold text-slate-900">{t('analytics.screeningVolume')}</h3>
+                    <p className="text-[11px] text-slate-500">{t('analytics.screeningVolumeDesc')}</p>
                   </div>
                 </div>
                 <div className="flex-1 w-full -ml-4">
@@ -120,8 +122,8 @@ export default function Analytics() {
           <motion.div variants={itemVariants} className="h-[380px]">
             <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl h-full flex flex-col">
               <CardContent className="p-6 flex-1 flex flex-col">
-                <h3 className="text-sm font-bold text-slate-900 mb-2">Disease Distribution</h3>
-                <p className="text-[11px] text-slate-500 mb-4">Symptom frequency among screened patients</p>
+                <h3 className="text-sm font-bold text-slate-900 mb-2">{t('analytics.diseaseDist')}</h3>
+                <p className="text-[11px] text-slate-500 mb-4">{t('analytics.diseaseDistDesc')}</p>
                 <div className="flex-1 w-full">
                   <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <PieChart>
@@ -157,7 +159,7 @@ export default function Analytics() {
           <motion.div variants={itemVariants} className="h-[380px]">
              <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl h-full flex flex-col">
               <CardContent className="p-6 flex-1 flex flex-col">
-                <h3 className="text-sm font-bold text-slate-900 mb-6">Follow-up Completion (Monthly)</h3>
+                <h3 className="text-sm font-bold text-slate-900 mb-6">{t('analytics.followUpCompletion')}</h3>
                 <div className="flex-1 w-full -ml-4">
                   <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <BarChart data={data.followUpData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -170,8 +172,8 @@ export default function Analytics() {
                         itemStyle={{ fontWeight: 'bold' }}
                       />
                       <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} />
-                      <Bar dataKey="completed" name="Completed" stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} barSize={30} />
-                      <Bar dataKey="missed" name="Missed" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="completed" name={t('analytics.completed')} stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} barSize={30} />
+                      <Bar dataKey="missed" name={t('analytics.missed')} stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -184,12 +186,12 @@ export default function Analytics() {
                  <Activity className="w-48 h-48 text-white" />
                </div>
                <div className="relative z-10 flex flex-col h-full justify-center">
-                 <h2 className="text-2xl font-black text-white mb-2">AI Performance Summary</h2>
+                 <h2 className="text-2xl font-black text-white mb-2">{t('analytics.aiSummary')}</h2>
                  <p className="text-white/80 font-medium text-sm mb-8 leading-relaxed max-w-md">
-                   Based on this week's analytics, your screening rate is up by 12%. Community health risk is stabilizing. Focus efforts on completing pending follow-ups for diabetic patients to further reduce critical escalations.
+                   {t('analytics.aiSummaryDesc')}
                  </p>
                  <button className="bg-white text-primary font-bold px-6 py-3 rounded-xl w-max shadow-lg hover:shadow-xl transition-shadow flex items-center gap-2">
-                   View Detailed Report
+                   {t('analytics.viewReport')}
                  </button>
                </div>
             </Card>

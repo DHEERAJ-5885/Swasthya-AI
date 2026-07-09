@@ -11,8 +11,7 @@ import NotificationPanel from '../components/NotificationPanel';
 import LanguageSelector from '../components/LanguageSelector';
 import toast from 'react-hot-toast';
 import api from '../api';
-import { useLanguage } from '../context/LanguageContext';
-import { t } from '../utils/i18n';
+import { useTranslation } from 'react-i18next';
 import dashboardHero from '../assets/dashboard-hero.png';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -30,7 +29,7 @@ export default function Dashboard() {
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [triggeringEmergency, setTriggeringEmergency] = useState(false);
   const worker = JSON.parse(localStorage.getItem('worker') || '{"name":"ASHA Worker", "village":""}');
-  const { language } = useLanguage();
+  const { t } = useTranslation();
 
   const fetchStats = () => {
     api.get('/dashboard/stats')
@@ -193,7 +192,7 @@ export default function Dashboard() {
         {/* Metrics Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard 
-            title="Total Patients" 
+            title={t('dashboard.totalPatients')} 
             value={data.totalPatients} 
             icon={Users} 
             trend="" 
@@ -202,7 +201,7 @@ export default function Dashboard() {
             chartData={data.sparklines.total}
           />
           <MetricCard 
-            title="High Risk Patients" 
+            title={t('dashboard.highRiskPatients')} 
             value={data.highRiskPatients} 
             icon={ShieldAlert} 
             trend="" 
@@ -211,7 +210,7 @@ export default function Dashboard() {
             chartData={data.sparklines.highRisk}
           />
           <MetricCard 
-            title="Follow-ups Due" 
+            title={t('dashboard.followupsDue')} 
             value={data.followUpsToday} 
             icon={Calendar} 
             trend="" 
@@ -220,7 +219,7 @@ export default function Dashboard() {
             chartData={data.sparklines.followUps}
           />
           <MetricCard 
-            title="Screenings Today" 
+            title={t('dashboard.screeningsToday')} 
             value={data.screeningsToday} 
             icon={Activity} 
             trend="" 
@@ -239,7 +238,7 @@ export default function Dashboard() {
               <CardContent className="p-6 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" /> AI Health Insights
+                    <Sparkles className="w-4 h-4 text-primary" /> {t('dashboard.aiHealthInsights')}
                   </h3>
                   <div className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-md">AI</div>
                 </div>
@@ -259,7 +258,7 @@ export default function Dashboard() {
                     );
                   })}
                   {(!data.aiInsights || data.aiInsights.length === 0) && (
-                    <li className="text-xs text-slate-500 font-medium">No active insights at the moment.</li>
+                    <li className="text-xs text-slate-500 font-medium">{t('dashboard.noActiveInsights')}</li>
                   )}
                 </ul>
 
@@ -267,7 +266,7 @@ export default function Dashboard() {
                   onClick={() => navigate('/ai-insights')}
                   className="w-full py-3 bg-primary hover:bg-primary-dark text-white rounded-xl text-sm font-bold transition-colors shadow-lg shadow-primary/20 mt-auto"
                 >
-                  View All Insights
+                  {t('dashboard.viewAllInsights')}
                 </button>
               </CardContent>
             </Card>
@@ -278,9 +277,9 @@ export default function Dashboard() {
             <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl h-full flex flex-col hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
               <CardContent className="p-6 flex-1 flex flex-col relative">
                 <div className="mb-2">
-                  <h3 className="text-sm font-bold text-slate-900">Community Risk Pulse</h3>
-                  <p className="text-lg font-bold text-orange-500 mt-1">{data.communityRisk}</p>
-                  <p className="text-xs text-slate-500">{worker.village || 'Shadnagar'} Village</p>
+                  <h3 className="text-sm font-bold text-slate-900">{t('dashboard.communityRisk')}</h3>
+                  <p className="text-lg font-bold text-orange-500 mt-1">{t('ai.moderateRisk')}</p>
+                  <p className="text-xs text-slate-500">{worker.village} {t('form.village')}</p>
                 </div>
                 
                 {/* Gauge Visualization */}
@@ -303,7 +302,7 @@ export default function Dashboard() {
 
                 <div className="flex items-end justify-between mt-auto">
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Risk Score</p>
+                    <p className="text-xs text-slate-500 font-medium">{t('dashboard.riskScore')}</p>
                     <p className="text-2xl font-bold text-slate-900">{data.riskScore}<span className="text-sm text-slate-400 font-medium">/100</span></p>
                   </div>
                   <div className="text-right">
@@ -322,17 +321,17 @@ export default function Dashboard() {
             <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl h-full flex flex-col hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
               <CardContent className="p-6 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-bold text-slate-900">Quick Actions</h3>
-                  <button className="text-xs font-bold text-primary hover:text-primary-dark">View All</button>
+                  <h3 className="text-sm font-bold text-slate-900">{t('dashboard.quickActions')}</h3>
+                  <button className="text-xs font-bold text-primary hover:text-primary-dark">{t('dashboard.viewAll')}</button>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 flex-1 content-start">
-                  <QuickActionButton icon={Plus} label="Add Patient" color="primary" onClick={() => navigate('/patients/add')} />
-                  <QuickActionButton icon={Stethoscope} label="Start Screening" color="emerald" onClick={() => navigate('/patients')} />
-                  <QuickActionButton icon={ScanLine} label="Scan Health Card" color="blue" onClick={() => navigate('/patients')} />
-                  <QuickActionButton icon={Mic} label="Voice Screening" color="purple" onClick={() => navigate('/patients')} />
-                  <QuickActionButton icon={PhoneCall} label="Emergency Alert" color="red" onClick={() => setShowEmergencyModal(true)} />
-                  <QuickActionButton icon={UsersRound} label="Family Insights" color="orange" onClick={() => navigate('/family-insights')} />
+                  <QuickActionButton icon={Plus} label={t('button.addPatient')} color="primary" onClick={() => navigate('/patients/add')} />
+                  <QuickActionButton icon={Stethoscope} label={t('nav.screenings')} color="emerald" onClick={() => navigate('/screenings')} />
+                  <QuickActionButton icon={ScanLine} label="Scan Card" color="blue" onClick={() => navigate('/patients')} />
+                  <QuickActionButton icon={Mic} label="Voice" color="purple" onClick={() => navigate('/patients')} />
+                  <QuickActionButton icon={PhoneCall} label={t('button.emergencyAlert')} color="red" onClick={() => setShowEmergencyModal(true)} />
+                  <QuickActionButton icon={UsersRound} label={t('nav.familyInsights')} color="orange" onClick={() => navigate('/family-insights')} />
                 </div>
               </CardContent>
             </Card>
@@ -348,10 +347,10 @@ export default function Dashboard() {
             <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl h-full hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
               <CardContent className="p-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-900">Patient Trend <span className="text-slate-400 font-medium font-normal">(This Month)</span></h3>
+                  <h3 className="text-sm font-bold text-slate-900">{t('dashboard.patientTrend')} <span className="text-slate-400 font-medium font-normal">({t('dashboard.thisMonth')})</span></h3>
                   <select className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none text-slate-600 font-medium">
-                    <option>This Month</option>
-                    <option>Last Month</option>
+                    <option>{t('dashboard.thisMonth')}</option>
+                    <option>{t('dashboard.lastMonth')}</option>
                   </select>
                 </div>
                 <div className="flex-1 w-full -ml-6 pr-2">
@@ -382,7 +381,7 @@ export default function Dashboard() {
           <motion.div variants={itemVariants} className="lg:col-span-1 h-[320px]">
             <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl h-full hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
               <CardContent className="p-6 h-full flex flex-col">
-                <h3 className="text-sm font-bold text-slate-900 mb-2">Top Health Conditions</h3>
+                <h3 className="text-sm font-bold text-slate-900 mb-2">{t('dashboard.topHealthConditions')}</h3>
                 <div className="flex-1 flex items-center justify-between">
                   <div className="w-1/2 h-full relative">
                     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -405,7 +404,7 @@ export default function Dashboard() {
                     {/* Center Text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <span className="text-2xl font-bold text-slate-900">{data.totalPatients}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{t('dashboard.total')}</span>
                     </div>
                   </div>
                   
@@ -431,8 +430,8 @@ export default function Dashboard() {
             <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl h-full hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
               <CardContent className="p-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-900">Recent Alerts</h3>
-                  <button onClick={() => navigate('/alerts')} className="text-xs font-bold text-primary hover:text-primary-dark">View All</button>
+                  <h3 className="text-sm font-bold text-slate-900">{t('dashboard.recentAlerts')}</h3>
+                  <button onClick={() => navigate('/alerts')} className="text-xs font-bold text-primary hover:text-primary-dark">{t('dashboard.viewAll')}</button>
                 </div>
                 
                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 scrollbar-hide">
@@ -457,7 +456,7 @@ export default function Dashboard() {
                   })}
                   {(!data.recentAlerts || data.recentAlerts.length === 0) && (
                     <div className="flex items-center justify-center h-full">
-                      <p className="text-xs text-slate-500 font-medium">No recent alerts.</p>
+                      <p className="text-xs text-slate-500 font-medium">{t('dashboard.noRecentAlerts')}</p>
                     </div>
                   )}
                 </div>
@@ -483,9 +482,9 @@ export default function Dashboard() {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 mt-2">
                 <AlertTriangle className="w-8 h-8 text-red-600" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">Trigger Emergency?</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-2">{t('dashboard.triggerEmergency')}</h2>
               <p className="text-sm text-slate-500 font-medium mb-6 px-4">
-                This will immediately alert doctors and primary health centers in {worker.village || 'your area'}.
+                {t('dashboard.emergencyDesc')} {worker.village || 'your area'}.
               </p>
               
               <div className="space-y-3">
@@ -495,14 +494,14 @@ export default function Dashboard() {
                   className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-70 shadow-lg shadow-red-500/30"
                 >
                   {triggeringEmergency ? <Loader2 className="w-5 h-5 animate-spin" /> : <PhoneCall className="w-5 h-5" />}
-                  {triggeringEmergency ? 'Triggering...' : 'Yes, Trigger Alert'}
+                  {triggeringEmergency ? t('dashboard.triggering') : t('dashboard.yesTriggerAlert')}
                 </button>
                 <button 
                   onClick={() => setShowEmergencyModal(false)}
                   disabled={triggeringEmergency}
                   className="w-full h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors disabled:opacity-70"
                 >
-                  Cancel
+                  {t('form.cancel')}
                 </button>
               </div>
             </motion.div>

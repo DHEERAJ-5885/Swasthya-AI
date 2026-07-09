@@ -4,9 +4,11 @@ import { Button } from '../components/ui/Button';
 import { ArrowLeft, BellRing, Calendar, ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
+import { useTranslation } from 'react-i18next';
 
 export default function Alerts() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,18 +65,18 @@ export default function Alerts() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 md:pb-6">
       <div className="max-w-3xl mx-auto px-0 md:px-4">
-      <MobileHeader title="Notifications" />
+      <MobileHeader title={t('alerts.notifications')} />
       <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">Notifications</h1>
+        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">{t('alerts.notifications')}</h1>
         <div className="w-6"></div> {/* Spacer */}
       </div>
 
       <div className="px-6 pt-6 space-y-3">
         {alerts.length === 0 ? (
-          <div className="text-center p-6 text-slate-500">No new alerts.</div>
+          <div className="text-center p-6 text-slate-500">{t('alerts.noAlerts')}</div>
         ) : (
           alerts.map(alert => {
             const { icon: Icon, dotColor, iconBg, iconColor } = getIconData(alert.type);

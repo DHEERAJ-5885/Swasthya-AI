@@ -12,6 +12,7 @@ import api, { API_URL } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import authBg from '../assets/auth-bg.png';
+import { useTranslation } from 'react-i18next';
 
 // Input Field Component
 const InputField = React.forwardRef(({ label, icon: Icon, error, ...props }, ref) => (
@@ -77,6 +78,7 @@ const PasswordField = React.forwardRef(({ label, icon: Icon, error, ...props }, 
 PasswordField.displayName = 'PasswordField';
 
 export default function Login() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState('login');
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -109,11 +111,11 @@ export default function Login() {
           worker = JSON.parse(decodeURIComponent(workerParam));
         }
         setAuth(googleToken, worker);
-        toast.success('Login successful');
+        toast.success(t('auth.loginSuccess'));
         window.history.replaceState({}, '', window.location.pathname);
         navigate('/');
       } catch {
-        toast.error('Google Sign-In failed');
+        toast.error(t('auth.googleFail'));
       }
     }
   }, [navigate, setAuth]);
@@ -132,7 +134,7 @@ export default function Login() {
           password: data.password 
         });
         setAuth(res.data.token, res.data.worker);
-        toast.success('Account signed in successfully');
+        toast.success(t('auth.loginSuccess'));
         navigate('/');
       } else {
         const res = await api.post('/auth/register', { 
@@ -145,7 +147,7 @@ export default function Login() {
           password: data.password 
         });
         setAuth(res.data.token, res.data.worker);
-        toast.success('Registration successful!');
+        toast.success(t('auth.registerSuccess'));
         navigate('/');
       }
     } catch (err) {
@@ -159,7 +161,7 @@ export default function Login() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        toast.error('Image size must be less than 2MB');
+        toast.error(t('auth.imgSizeErr'));
         return;
       }
       const reader = new FileReader();
@@ -172,7 +174,7 @@ export default function Login() {
     setValue('employeeId', 'ASH-001');
     setValue('phone', '9876543210');
     setValue('password', 'password123');
-    toast.success('Demo credentials loaded');
+    toast.success(t('auth.demoLoaded'));
   };
 
   return (
@@ -197,10 +199,10 @@ export default function Login() {
               <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-md shadow-lg shadow-black/10">
                 <ShieldPlus className="w-8 h-8 text-white" />
               </div>
-              <span className="text-3xl font-bold tracking-tight">Swasthya AI</span>
+              <span className="text-3xl font-bold tracking-tight">{t('auth.swasthyaAi')}</span>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold leading-tight mb-6">Intelligence at the First Point of Care</h2>
-            <p className="text-white/90 text-lg leading-relaxed max-w-md font-medium">Empowering ASHA workers with AI-driven insights to monitor health, detect risk drift, and save lives in rural communities.</p>
+            <h2 className="text-4xl lg:text-5xl font-bold leading-tight mb-6">{t('auth.tagline')}</h2>
+            <p className="text-white/90 text-lg leading-relaxed max-w-md font-medium">{t('auth.desc')}</p>
           </div>
           
           <div className="space-y-5">
@@ -208,13 +210,13 @@ export default function Login() {
               <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 shadow-inner">
                 <CheckCircle2 className="w-5 h-5 text-emerald-300" />
               </div>
-              <span className="text-white/95 font-semibold text-lg">Real-time health drift detection</span>
+              <span className="text-white/95 font-semibold text-lg">{t('auth.driftDetection')}</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 shadow-inner">
                 <CheckCircle2 className="w-5 h-5 text-emerald-300" />
               </div>
-              <span className="text-white/95 font-semibold text-lg">AI-powered risk assessment</span>
+              <span className="text-white/95 font-semibold text-lg">{t('auth.riskAssessment')}</span>
             </div>
           </div>
         </div>
@@ -232,8 +234,8 @@ export default function Login() {
             <div className="p-3 bg-primary/10 rounded-2xl mb-3">
               <ShieldPlus className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Swasthya AI</h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">Secure access for frontline workers</p>
+            <h1 className="text-2xl font-bold text-slate-900">{t('auth.swasthyaAi')}</h1>
+            <p className="text-slate-500 text-sm font-medium mt-1">{t('auth.secureAccess')}</p>
           </div>
 
           {/* Mode Toggle */}
@@ -245,7 +247,7 @@ export default function Login() {
                 mode === 'login' ? 'bg-white text-primary shadow-sm ring-1 ring-slate-200/50' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              Sign In
+              {t('auth.signIn')}
             </button>
             <button 
               type="button"
@@ -254,19 +256,19 @@ export default function Login() {
                 mode === 'register' ? 'bg-white text-primary shadow-sm ring-1 ring-slate-200/50' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              Register
+              {t('auth.register')}
             </button>
           </div>
 
           <div className="p-6 md:p-8 pt-6">
             <div className="hidden md:block mb-8">
               <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                {mode === 'login' ? 'Welcome back' : 'Join as Worker'}
+                {mode === 'login' ? t('auth.welcomeBack') : t('auth.joinAsWorker')}
               </h3>
               <p className="text-slate-500 text-sm font-medium">
                 {mode === 'login' 
-                  ? 'Enter your credentials to access your dashboard' 
-                  : 'Create your professional account to start managing patients'}
+                  ? t('auth.enterCreds') 
+                  : t('auth.createAccountDesc')}
               </p>
             </div>
 
@@ -306,38 +308,38 @@ export default function Login() {
                             onChange={handleFileChange}
                           />
                         </div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mt-3">Profile Photo</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mt-3">{t('auth.profilePhoto')}</span>
                       </div>
 
                       <InputField 
-                        label="Full Name" 
+                        label={t('auth.fullName')} 
                         icon={UsersRound} 
                         placeholder="Anita Kumari"
                         error={errors.name}
-                        {...register("name", { required: "Full name is required" })}
+                        {...register("name", { required: t('auth.nameReq') })}
                       />
                     </>
                   )}
 
                   <InputField 
-                    label="Employee ID" 
+                    label={t('auth.employeeId')} 
                     icon={IdCard} 
                     placeholder="ASH-001"
                     error={errors.employeeId}
-                    {...register("employeeId", { required: "Employee ID is required" })}
+                    {...register("employeeId", { required: t('auth.empIdReq') })}
                   />
 
                   <InputField 
-                    label="Phone Number" 
+                    label={t('auth.phoneNum')} 
                     icon={Phone} 
                     type="tel"
                     placeholder="9876543210"
                     error={errors.phone}
                     {...register("phone", { 
-                      required: "Phone number is required",
+                      required: t('auth.phoneReq'),
                       pattern: {
                         value: /^[0-9]{10}$/,
-                        message: "Must be exactly 10 digits"
+                        message: t('auth.phoneInvalid')
                       }
                     })}
                     onInput={(e) => {
@@ -348,25 +350,25 @@ export default function Login() {
                   {mode === 'register' && (
                     <div className="grid grid-cols-2 gap-4">
                       <InputField 
-                        label="Village" 
+                        label={t('auth.village')} 
                         icon={MapPin} 
                         placeholder="Rampur"
                         error={errors.village}
-                        {...register("village", { required: "Village is required" })}
+                        {...register("village", { required: t('auth.villageReq') })}
                       />
                       <InputField 
-                        label="District" 
+                        label={t('auth.district')} 
                         icon={Building2} 
                         placeholder="Patna"
                         error={errors.district}
-                        {...register("district", { required: "District is required" })}
+                        {...register("district", { required: t('auth.districtReq') })}
                       />
                     </div>
                   )}
 
                   {mode === 'register' && (
                     <InputField 
-                      label="Email (Optional)" 
+                      label={t('auth.email')} 
                       icon={Mail} 
                       type="email"
                       placeholder="anita@example.com"
@@ -374,32 +376,32 @@ export default function Login() {
                       {...register("email", {
                         pattern: {
                           value: /^\S+@\S+$/i,
-                          message: "Invalid email address"
+                          message: t('auth.emailInvalid')
                         }
                       })}
                     />
                   )}
 
                   <PasswordField 
-                    label="Password" 
+                    label={t('auth.password')} 
                     icon={LockKeyhole} 
                     placeholder="••••••••"
                     error={errors.password}
                     {...register("password", { 
-                      required: "Password is required",
-                      minLength: { value: 6, message: "Minimum 6 characters" }
+                      required: t('auth.passReq'),
+                      minLength: { value: 6, message: t('auth.passMin') }
                     })}
                   />
 
                   {mode === 'register' && (
                     <PasswordField 
-                      label="Confirm Password" 
+                      label={t('auth.confirmPassword')} 
                       icon={LockKeyhole} 
                       placeholder="••••••••"
                       error={errors.confirmPassword}
                       {...register("confirmPassword", { 
-                        required: "Please confirm your password",
-                        validate: value => value === watchPassword || "Passwords do not match"
+                        required: t('auth.passConfirmReq'),
+                        validate: value => value === watchPassword || t('auth.passMismatch')
                       })}
                     />
                   )}
@@ -415,7 +417,7 @@ export default function Login() {
                   <Loader2 className="w-6 h-6 animate-spin" />
                 ) : (
                   <>
-                    {mode === 'login' ? 'Sign In' : 'Create Account'}
+                    {mode === 'login' ? t('auth.signIn') : t('auth.createAccount')}
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
@@ -429,7 +431,7 @@ export default function Login() {
                     <div className="w-full border-t border-slate-200"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">Or</span>
+                    <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">{t('auth.or')}</span>
                   </div>
                 </div>
 
@@ -444,20 +446,20 @@ export default function Login() {
                     <path fill="#34A853" d="M5.54 14.38c-.24-.72-.37-1.49-.37-2.38s.13-1.66.37-2.38V6.41H1.41C.51 8.21 0 10.15 0 12s.51 3.79 1.41 5.59l4.13-3.21z"/>
                     <path fill="#4285F4" d="M12 4.77c1.76 0 3.35.61 4.59 1.8l3.43-3.43C17.95 1.07 15.24 0 12 0 7.54 0 3.42 2.75 1.41 6.41l4.13 3.21c.9-2.74 3.45-4.77 6.46-4.77z"/>
                   </svg>
-                  Sign in with Google
+                  {t('auth.googleSignIn')}
                 </button>
 
                 <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 mt-6 group hover:bg-primary/10 transition-colors">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Jury / Demo Access</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{t('auth.demoAccess')}</span>
                   </div>
                   <button 
                     type="button"
                     onClick={loadDemo}
                     className="w-full text-left text-sm font-semibold text-slate-600 group-hover:text-primary transition-colors flex items-center justify-between"
                   >
-                    Load sample account credentials
+                    {t('auth.loadDemo')}
                     <CheckCircle2 className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 </div>

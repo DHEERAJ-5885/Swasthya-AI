@@ -3,23 +3,52 @@ const router = express.Router();
 const { OpenAI } = require('openai');
 const Patient = require('../models/Patient');
 const Screening = require('../models/Screening');
+const Alert = require('../models/Alert');
+const FollowUp = require('../models/FollowUp');
 
 router.post('/', async (req, res) => {
   try {
     const { message } = req.body;
     
-    // Fetch high risk patients for context
-    const recentScreenings = await Screening.find().sort({ createdAt: -1 }).limit(20).populate('patientId', 'name village');
-    const highRisk = recentScreenings.filter(s => s.result?.riskLevel === 'High').map(s => s.patientId?.name).join(', ');
+    // Fetch all patients for the worker to provide full context
+    const patients = await Patient.find({ worker: req.userId }).select('name healthId age gender village contactNumber riskLevel').lean();
+    const patientIds = patients.map(p => p._id);
+    
+    // Fetch related contextual data
+    const recentScreenings = await Screening.find({ patientId: { $in: patientIds } })
+      .sort({ createdAt: -1 })
+      .limit(30)
+      .populate('patientId', 'name')
+      .lean();
+      
+    const recentAlerts = await Alert.find({ 
+      $or: [{ patientId: { $in: patientIds } }, { village: { $exists: true } }] 
+    }).sort({ createdAt: -1 }).limit(15).lean();
+    
+    const pendingFollowUps = await FollowUp.find({ 
+      patientId: { $in: patientIds }, 
+      status: 'Pending' 
+    }).populate('patientId', 'name').lean();
+
+    // Compress data for prompt context to avoid hitting token limits
+    const contextData = {
+      patients: patients.map(p => ({ id: p.healthId, name: p.name, age: p.age, gender: p.gender, village: p.village, risk: p.riskLevel })),
+      recentScreenings: recentScreenings.map(s => ({ patient: s.patientId?.name, date: s.createdAt, risk: s.result?.riskLevel, aiSummary: s.result?.explanation, action: s.result?.nextAction })),
+      alerts: recentAlerts.map(a => ({ type: a.type, title: a.title, msg: a.message, date: a.createdAt })),
+      pendingFollowUps: pendingFollowUps.map(f => ({ patient: f.patientId?.name, priority: f.priority, reason: f.notes, due: f.date }))
+    };
 
     const prompt = `
-      You are Swasthya AI, a medical assistant for ASHA workers in rural India.
+      You are Swasthya AI, an intelligent, empathetic medical assistant and copilot for ASHA (Accredited Social Health Activist) workers in rural India.
       
-      CRITICAL INSTRUCTION: You MUST ONLY answer questions related to healthcare, medical topics, patient care, or the Swasthya AI system. 
-      If the user asks a question that is NOT related to medical or healthcare topics, you must politely decline and say exactly: "Please ask a valid medical or healthcare related question."
+      CRITICAL INSTRUCTION: 
+      - ONLY answer questions related to healthcare, medical topics, patient care, or the Swasthya AI system. 
+      - If asked about non-healthcare topics, politely decline: "Please ask a valid medical or healthcare related question."
+      - Provide actionable, clear, and concise advice. Use simple language.
+      - If asked to summarize a patient or provide history, use the system context provided below.
       
-      Current system context:
-      High Risk Patients needing urgent attention: ${highRisk || 'None currently'}.
+      Current system context (JSON data for your assigned patients, recent screenings, alerts, and pending follow-ups):
+      ${JSON.stringify(contextData)}
       
       Worker asks: "${message}"
       
@@ -49,7 +78,7 @@ router.post('/', async (req, res) => {
 
     res.json({ reply });
   } catch (err) {
-    console.error(err);
+    console.error('Chat endpoint error:', err);
     res.status(500).json({ error: 'Failed to generate response' });
   }
 });

@@ -8,10 +8,12 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import { useTranslation } from 'react-i18next';
 
 export default function AlertDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
@@ -23,7 +25,7 @@ export default function AlertDetail() {
         setLoading(false);
       })
       .catch(err => {
-        toast.error('Failed to load alert details');
+        toast.error(t('alerts.errLoadDetail'));
         navigate(-1);
       });
   }, [id, navigate]);
@@ -32,10 +34,10 @@ export default function AlertDetail() {
     setResolving(true);
     try {
       await api.put(`/alerts/${id}/resolve`);
-      toast.success('Alert marked as resolved');
+      toast.success(t('alerts.resolvedSuccess'));
       navigate(-1);
     } catch (err) {
-      toast.error('Failed to resolve alert');
+      toast.error(t('alerts.errResolve'));
       setResolving(false);
     }
   };
@@ -62,7 +64,7 @@ export default function AlertDetail() {
   }
 
   if (!data || !data.alert) {
-    return <div className="text-center mt-20">Alert not found</div>;
+    return <div className="text-center mt-20">{t('alerts.alertNotFound')}</div>;
   }
 
   const { alert, patient, latestScreening, previousScreenings } = data;
@@ -79,13 +81,13 @@ export default function AlertDetail() {
     if (!latestScreening || !latestScreening.data) return [];
     const sd = latestScreening.data;
     const items = [
-      formatSymptom('Fever', sd.fever),
-      formatSymptom('Oxygen', sd.oxygen),
-      formatSymptom('Fatigue', sd.fatigue),
-      formatSymptom('BP', sd.bp),
-      formatSymptom('Sleep', sd.sleep),
-      formatSymptom('Appetite', sd.appetite),
-      formatSymptom('Stress', sd.stress)
+      formatSymptom(t('alerts.symptoms.fever'), sd.fever),
+      formatSymptom(t('alerts.symptoms.oxygen'), sd.oxygen),
+      formatSymptom(t('alerts.symptoms.fatigue'), sd.fatigue),
+      formatSymptom(t('alerts.symptoms.bp'), sd.bp),
+      formatSymptom(t('alerts.symptoms.sleep'), sd.sleep),
+      formatSymptom(t('alerts.symptoms.appetite'), sd.appetite),
+      formatSymptom(t('alerts.symptoms.stress'), sd.stress)
     ].filter(Boolean);
     return items;
   };
@@ -99,7 +101,7 @@ export default function AlertDetail() {
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">Alert Details</h1>
+        <h1 className="text-sm font-bold text-slate-900 absolute left-1/2 -translate-x-1/2">{t('alerts.alertDetails')}</h1>
         <div className="w-6"></div>
       </div>
 
@@ -127,7 +129,7 @@ export default function AlertDetail() {
         {patient && (
           <Card className="p-4 border-slate-100 shadow-sm overflow-hidden relative">
             <div className={`absolute top-0 right-0 w-2 h-full ${patient.risk === 'High' || patient.risk === 'Critical' ? 'bg-red-500' : patient.risk === 'Medium' ? 'bg-orange-500' : 'bg-green-500'}`}></div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Patient Information</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">{t('alerts.patientInfo')}</p>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
                 {patient.photoUrl ? (
@@ -138,9 +140,9 @@ export default function AlertDetail() {
               </div>
               <div className="flex-1">
                 <h3 className="text-base font-bold text-slate-900">{patient.name}</h3>
-                <p className="text-xs text-slate-500 mb-1">{patient.age} years • {patient.gender}</p>
+                <p className="text-xs text-slate-500 mb-1">{patient.age} {t('alerts.years')} • {patient.gender}</p>
                 <p className="text-xs text-slate-500 flex items-center gap-1">
-                  <span>ID: {patient.familyId || 'N/A'}</span>
+                  <span>ID: {patient.familyId || t('alerts.na')}</span>
                   <span>•</span>
                   <span>{patient.village}</span>
                 </p>
@@ -154,27 +156,27 @@ export default function AlertDetail() {
           <Card className="p-4 border border-primary/20 bg-primary/5 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <ShieldCheck className="w-5 h-5 text-primary" />
-              <p className="text-xs font-bold text-primary uppercase tracking-wider">AI Health Insight</p>
+              <p className="text-xs font-bold text-primary uppercase tracking-wider">{t('alerts.aiHealthInsight')}</p>
             </div>
             <p className="text-sm font-medium text-slate-800 leading-relaxed">
               {latestScreening.result?.aiExplanation || 
                latestScreening.result?.explanation || 
-               "Our AI models have detected a deviation in the patient's normal health baseline requiring attention."}
+               t('alerts.aiDefaultExplanation')}
             </p>
             
             <div className="mt-4 flex gap-2 flex-wrap">
               <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-                <p className="text-[10px] text-slate-400 font-semibold">Current Risk</p>
+                <p className="text-[10px] text-slate-400 font-semibold">{t('alerts.currentRisk')}</p>
                 <p className={`text-xs font-bold ${latestScreening.result?.riskLevel === 'High' || latestScreening.result?.riskLevel === 'Critical' ? 'text-red-600' : 'text-slate-700'}`}>
-                  {latestScreening.result?.riskLevel || patient?.risk || 'Unknown'}
+                  {latestScreening.result?.riskLevel || patient?.risk || t('alerts.unknown')}
                 </p>
               </div>
               <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-                <p className="text-[10px] text-slate-400 font-semibold">Trend</p>
-                <p className="text-xs font-bold text-slate-700">{latestScreening.result?.driftStatus || latestScreening.result?.trend || 'Stable'}</p>
+                <p className="text-[10px] text-slate-400 font-semibold">{t('alerts.trend')}</p>
+                <p className="text-xs font-bold text-slate-700">{latestScreening.result?.driftStatus || latestScreening.result?.trend || t('alerts.stable')}</p>
               </div>
               <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-                <p className="text-[10px] text-slate-400 font-semibold">Confidence</p>
+                <p className="text-[10px] text-slate-400 font-semibold">{t('alerts.confidence')}</p>
                 <p className="text-xs font-bold text-slate-700">{latestScreening.result?.confidence || 95}%</p>
               </div>
             </div>
@@ -184,7 +186,7 @@ export default function AlertDetail() {
         {/* Symptoms Section */}
         {symptoms.length > 0 && (
           <div>
-            <p className="text-xs font-bold text-slate-900 mb-3 ml-1">Reported Symptoms</p>
+            <p className="text-xs font-bold text-slate-900 mb-3 ml-1">{t('alerts.reportedSymptoms')}</p>
             <div className="grid grid-cols-2 gap-2">
               {symptoms.map((s, idx) => (
                 <div key={idx} className="bg-white border border-slate-100 rounded-xl p-3 shadow-sm">
@@ -199,7 +201,7 @@ export default function AlertDetail() {
         {/* Recommended Actions */}
         {latestScreening?.result?.nextAction && (
           <div>
-            <p className="text-xs font-bold text-slate-900 mb-3 ml-1">Recommended Actions</p>
+            <p className="text-xs font-bold text-slate-900 mb-3 ml-1">{t('alerts.recommendedActions')}</p>
             <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                 <Activity className="w-4 h-4 text-blue-600" />
@@ -217,7 +219,7 @@ export default function AlertDetail() {
         {/* Timeline */}
         {previousScreenings && previousScreenings.length > 0 && (
           <div>
-            <p className="text-xs font-bold text-slate-900 mb-3 ml-1">Timeline History</p>
+            <p className="text-xs font-bold text-slate-900 mb-3 ml-1">{t('alerts.timelineHistory')}</p>
             <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm space-y-4">
               {previousScreenings.slice(0, 3).map((sc, idx) => (
                 <div key={sc._id} className="flex items-start gap-3 relative">
@@ -226,8 +228,8 @@ export default function AlertDetail() {
                   )}
                   <div className={`w-4 h-4 rounded-full mt-0.5 z-10 ring-4 ring-white ${sc.result?.riskLevel === 'High' ? 'bg-red-400' : 'bg-slate-300'}`}></div>
                   <div>
-                    <p className="text-xs font-bold text-slate-800">Screening: {sc.result?.riskLevel} Risk</p>
-                    <p className="text-[10px] text-slate-500">{new Date(sc.createdAt).toLocaleDateString()} • Trend: {sc.result?.driftStatus || 'Stable'}</p>
+                    <p className="text-xs font-bold text-slate-800">{t('alerts.screeningRisk', { level: sc.result?.riskLevel })}</p>
+                    <p className="text-[10px] text-slate-500">{new Date(sc.createdAt).toLocaleDateString()} • {t('alerts.trend')}: {sc.result?.driftStatus || t('alerts.stable')}</p>
                   </div>
                 </div>
               ))}
@@ -240,19 +242,19 @@ export default function AlertDetail() {
           {!alert.resolved && (
             <Button onClick={handleResolve} disabled={resolving} className="w-full flex items-center justify-center gap-2">
               {resolving ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-              {resolving ? 'Resolving...' : 'Mark as Resolved'}
+              {resolving ? t('alerts.resolving') : t('alerts.markResolved')}
             </Button>
           )}
 
           {patient && (
             <div className="grid grid-cols-2 gap-3">
               <Button variant="secondary" onClick={() => navigate(`/patients/${patient._id}`)} className="w-full">
-                View Profile
+                {t('alerts.viewProfile')}
               </Button>
               <a href={`tel:${patient.phone}`} className="w-full">
                 <Button variant="secondary" className="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-700">
                   <PhoneCall className="w-4 h-4" />
-                  Call
+                  {t('alerts.call')}
                 </Button>
               </a>
             </div>

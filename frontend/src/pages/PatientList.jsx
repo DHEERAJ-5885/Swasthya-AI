@@ -5,12 +5,13 @@ import { Search, Filter, ChevronRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
+import { useTranslation } from 'react-i18next';
 
 export default function PatientList() {
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [search, setSearch] = useState('');
-
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export default function PatientList() {
       setLoading(false);
     }).catch(err => {
       console.error(err);
-      toast.error('Failed to load patients. Using cached data if available.');
+      toast.error(t('patients.failedLoad'));
       setLoading(false);
     });
   }, []);
@@ -35,14 +36,14 @@ export default function PatientList() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-6">
-      <MobileHeader title="Patients" />
+      <MobileHeader title={t('nav.patients')} />
       {/* Search Bar Area */}
       <div className="bg-slate-50 px-6 md:px-10 py-5 sticky md:top-0 top-[60px] z-10">
         <div className="relative flex items-center max-w-3xl">
           <Search className="absolute left-4 w-5 h-5 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Search patients..." 
+            placeholder={t('patients.searchPatients')} 
             className="w-full h-12 pl-12 pr-12 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white shadow-[0_4px_12px_rgb(0,0,0,0.03)] text-sm font-medium"
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -80,13 +81,15 @@ export default function PatientList() {
               )}
               <div>
                 <h3 className="text-sm font-bold text-slate-900">{patient.name}</h3>
-                <p className="text-[10px] text-slate-500 font-medium">{patient.age} Years, {patient.gender || 'Female'}</p>
+                <p className="text-[10px] text-slate-500 font-medium">{patient.age} {t('patients.years')}, {patient.gender === 'Female' ? t('patients.female') : patient.gender || t('patients.female')}</p>
               </div>
             </div>
             
             <div className="flex items-center gap-3 text-right">
               <div>
-                <p className={`text-[10px] font-bold ${riskColors[patient.risk] || 'text-slate-500'} mb-0.5`}>{patient.risk} Risk</p>
+                <p className={`text-[10px] font-bold ${riskColors[patient.risk] || 'text-slate-500'} mb-0.5`}>
+                  {patient.risk === 'High' ? t('patients.highRisk') : patient.risk === 'Medium' ? t('patients.mediumRisk') : patient.risk === 'Low' ? t('patients.lowRisk') : `${patient.risk} ${t('patients.risk')}`}
+                </p>
                 <p className="text-[10px] text-slate-400 font-medium">{patient.date}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-300" />
@@ -94,7 +97,7 @@ export default function PatientList() {
           </div>
         ))}
         {filtered.length === 0 && (
-           <div className="text-center py-10 text-slate-500 text-sm font-medium">No patients found.</div>
+           <div className="text-center py-10 text-slate-500 text-sm font-medium">{t('patients.noPatients')}</div>
         )}
         </div>
         )}

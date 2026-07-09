@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Users, Plus, Bell, Menu } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     import('../api').then(module => {
@@ -17,11 +19,11 @@ export default function BottomNav() {
 
   // Define navigation items based on the reference image
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: Home },
-    { name: 'Patients', path: '/patients', icon: Users },
-    { name: 'Add', path: '/patients/add', icon: Plus, isFab: true }, // Floating Action Button
-    { name: 'Alerts', path: '/alerts', icon: Bell, badge: unreadCount > 0 ? unreadCount : null },
-    { name: 'More', path: '#menu', icon: Menu, isAction: true }
+    { name: t('nav.dashboard'), path: '/', icon: Home },
+    { name: t('nav.patients'), path: '/patients', icon: Users },
+    { name: t('button.addPatient').split(' ')[0], path: '/patients/add', icon: Plus, isFab: true },
+    { name: t('nav.alerts'), path: '/alerts', icon: Bell, badge: unreadCount > 0 ? unreadCount : null },
+    { name: t('nav.more'), path: '#menu', icon: Menu, isAction: true }
   ];
 
   // Only show on main tabs
