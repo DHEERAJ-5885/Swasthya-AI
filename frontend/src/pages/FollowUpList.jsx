@@ -37,7 +37,7 @@ export default function FollowUpList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20">
       <div className="px-6 py-5 flex items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-200">
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
@@ -46,7 +46,7 @@ export default function FollowUpList() {
         <div className="w-6"></div>
       </div>
 
-      <div className="px-6 pt-6 space-y-4">
+      <div className="px-6 pt-6 space-y-4 w-full max-w-7xl mx-auto">
         {loading ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />

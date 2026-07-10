@@ -63,6 +63,8 @@ const getSteps = (t) => [
 ];
 
 export default function ScreeningFlow() {
+  const { t } = useTranslation();
+  const steps = getSteps(t);
   const { id } = useParams();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -201,7 +203,7 @@ export default function ScreeningFlow() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex-1 w-full bg-white flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-primary/10 w-28 h-28 rounded-full flex items-center justify-center mb-8 animate-pulse">
           <BrainCircuit className="w-14 h-14 text-primary" />
         </div>
@@ -222,7 +224,7 @@ export default function ScreeningFlow() {
   const progressPercent = ((currentStep + 1) / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-white pb-32 relative">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-white pb-32 relative flex flex-col">
       <MobileHeader title={t('screening.flow')} />
       <div className="px-6 py-5 bg-white sticky md:top-0 top-[60px] z-10 shadow-sm border-b border-slate-50">
         <h1 className="text-lg font-bold text-slate-900 mb-4">{t('screening.stepOf', { current: currentStep + 1, total: steps.length })}: {step.title}</h1>
@@ -231,7 +233,7 @@ export default function ScreeningFlow() {
         </div>
       </div>
 
-      <div className="px-6 pt-6 space-y-8">
+      <div className="px-6 pt-6 space-y-8 flex-1 max-w-7xl mx-auto w-full">
         {previousScreening && (
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{t('screening.previous')}</p>
@@ -323,7 +325,7 @@ export default function ScreeningFlow() {
         )}
       </div>
 
-      <div className="fixed bottom-0 w-full max-w-md bg-white p-6 border-t border-slate-100 flex items-center justify-between z-20">
+      <div className="sticky bottom-0 w-full bg-white p-6 border-t border-slate-100 flex items-center justify-between z-20 mt-auto">
         <button onClick={handleBack} className="text-sm font-semibold text-slate-500 flex items-center gap-1 hover:text-slate-900 transition-colors px-2 py-2">
           &larr; {t('screening.back')}
         </button>

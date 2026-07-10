@@ -178,7 +178,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-[#F8FAFC] overflow-x-hidden font-sans">
+    <div className="flex-1 w-full h-full flex flex-col md:flex-row bg-[#F8FAFC] overflow-y-auto overflow-x-hidden font-sans">
       
       {/* Background / Left Branding Section */}
       <div className="relative w-full h-[38vh] md:h-screen md:w-5/12 lg:w-1/2 flex-shrink-0 bg-primary overflow-hidden">

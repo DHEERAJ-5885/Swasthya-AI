@@ -28,14 +28,14 @@ export default function ScreeningsList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex-1 w-full bg-white flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full pb-24 bg-[#F8FAFC]">
       <MobileHeader title={t('screeningsList.recentScreenings')} />
       
       <div className="hidden md:flex px-8 py-6 bg-white border-b border-slate-100 sticky top-0 z-30 justify-between items-center">
@@ -45,7 +45,7 @@ export default function ScreeningsList() {
         </Button>
       </div>
 
-      <div className="p-4 md:p-8 max-w-[1200px] mx-auto space-y-4">
+      <div className="p-4 md:p-6 w-full max-w-7xl mx-auto space-y-4">
         {error ? (
           <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-semibold">{error}</div>
         ) : screenings.length === 0 ? (

@@ -31,7 +31,7 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+      <div className="flex-1 w-full bg-[#F8FAFC] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -50,7 +50,7 @@ export default function Analytics() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 md:pl-64">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full pb-24 md:pb-8 bg-[#F8FAFC]">
       <MobileHeader title={t('analytics.analyticsTitle')} />
       {/* Header */}
       <div className="px-6 py-5 hidden md:flex items-center justify-between sticky top-0 bg-[#F8FAFC]/80 backdrop-blur-md z-10 border-b border-slate-100">
@@ -69,7 +69,7 @@ export default function Analytics() {
       </div>
 
       <motion.div 
-        className="px-6 py-6 max-w-[1400px] mx-auto space-y-6"
+        className="px-4 md:px-6 py-6 max-w-7xl mx-auto space-y-6 w-full"
         variants={containerVariants}
         initial="hidden"
         animate="show"

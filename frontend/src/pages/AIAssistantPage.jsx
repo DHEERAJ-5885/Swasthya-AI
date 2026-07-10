@@ -42,8 +42,11 @@ export default function AIAssistantPage() {
   }, [messages, loading]);
 
   const handleSend = async (textOverride) => {
+    if (loading) return;
     const textToSend = textOverride || input;
     if (!textToSend.trim()) return;
+
+    const historyPayload = messages.slice(1).map(m => ({ sender: m.sender, text: m.text }));
 
     const userMsg = {
       id: Date.now(),
@@ -57,12 +60,18 @@ export default function AIAssistantPage() {
     setLoading(true);
 
     try {
-      const res = await api.post('/chat', { message: textToSend });
+      const res = await api.post('/chat', { message: textToSend, history: historyPayload });
+      
+      if (res.data.isEmergency) {
+        toast.error('🚨 Emergency Alert Generated! High priority follow-up created.', { duration: 5000, icon: '🚨' });
+      }
+
       const aiMsg = {
         id: Date.now() + 1,
         sender: 'ai',
         text: res.data.reply,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isEmergency: res.data.isEmergency
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch (err) {
@@ -115,11 +124,11 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#F8FAFC]">
+    <div className="flex flex-col flex-1 w-full h-full bg-[#F8FAFC] relative">
       <MobileHeader title={t('ai.aiAssistant')} />
 
       {/* Main Chat Area */}
-      <div className="flex-1 overflow-y-auto w-full max-w-[1000px] mx-auto px-4 py-6 scrollbar-hide pb-[180px]">
+      <div className="flex-1 overflow-y-auto w-full max-w-7xl mx-auto px-4 py-6 scrollbar-hide pb-10">
         {/* Welcome & Quick Actions */}
         {messages.length === 1 && (
           <motion.div 
@@ -187,17 +196,24 @@ export default function AIAssistantPage() {
                     <Bot className="w-4 h-4 text-primary" />
                   </div>
                 )}
-                <div 
-                  className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-4 shadow-sm ${
-                    msg.sender === 'user' 
-                      ? 'bg-primary text-white rounded-tr-sm' 
-                      : 'bg-white border border-slate-100 text-slate-700 rounded-tl-sm'
-                  }`}
-                >
+                <div className="flex flex-col">
+                  {msg.isEmergency && (
+                    <div className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1.5 rounded-md text-[10px] font-bold mb-2 w-max border border-red-100 ml-11">
+                      <ShieldAlert className="w-3.5 h-3.5" /> Emergency Alert
+                    </div>
+                  )}
+                  <div 
+                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-4 shadow-sm ${
+                      msg.sender === 'user' 
+                        ? 'bg-primary text-white rounded-tr-sm ml-auto' 
+                        : 'bg-white border border-slate-100 text-slate-700 rounded-tl-sm'
+                    }`}
+                  >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                   <p className={`text-[9px] mt-2 font-semibold ${msg.sender === 'user' ? 'text-white/70 text-right' : 'text-slate-400'}`}>
                     {msg.time}
                   </p>
+                </div>
                 </div>
               </motion.div>
             ))}
@@ -223,8 +239,8 @@ export default function AIAssistantPage() {
       </div>
 
       {/* Input Area Fixed to Bottom */}
-      <div className="fixed bottom-0 md:bottom-0 left-0 md:left-64 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-200 p-4 pb-safe z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.02)] pb-[80px] md:pb-4">
-        <div className="max-w-[1000px] mx-auto w-full relative">
+      <div className="w-full bg-white/80 backdrop-blur-xl border-t border-slate-200 p-4 pb-[80px] md:pb-4 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+        <div className="max-w-7xl mx-auto w-full relative">
           <form 
             onSubmit={(e) => { e.preventDefault(); handleSend(); }} 
             className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1.5 rounded-[1.5rem] shadow-inner focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all"

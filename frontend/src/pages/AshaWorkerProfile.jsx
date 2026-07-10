@@ -104,7 +104,7 @@ export default function AshaWorkerProfile() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center flex-1 w-full h-full bg-slate-50">
         <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
         <p className="text-slate-600">{t('profile.profileLoading')}</p>
       </div>
@@ -120,7 +120,7 @@ export default function AshaWorkerProfile() {
   }
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 space-y-4 pb-24">
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-primary-dark text-white p-6 rounded-b-3xl">
         <div className="flex items-center gap-4 mb-4 relative">

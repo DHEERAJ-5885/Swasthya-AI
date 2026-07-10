@@ -59,7 +59,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center md:pl-64">
+      <div className="flex-1 flex items-center justify-center bg-[#F8FAFC] w-full">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -100,7 +100,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="w-full min-h-screen pb-24 md:pb-8 font-sans selection:bg-primary/20 overflow-x-hidden">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full pb-24 md:pb-8 font-sans selection:bg-primary/20">
       
       {/* Top Nav Bar (Desktop) - Re-aligned, Search removed */}
       <div className="hidden md:flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100/50">
@@ -149,7 +149,7 @@ export default function Dashboard() {
       </div>
 
       {/* Hero Banner Section */}
-      <div className="w-full px-0 md:px-8 md:pt-6 max-w-[1440px] mx-auto">
+      <div className="w-full px-0 md:px-6 md:pt-6 max-w-7xl mx-auto">
         <div className="relative w-full h-[280px] sm:h-[300px] md:h-[380px] bg-[#0f172a] overflow-hidden flex flex-col justify-center rounded-none md:rounded-[32px] shadow-sm z-10">
           <img 
             src={dashboardHero} 
@@ -184,7 +184,7 @@ export default function Dashboard() {
 
       {/* Main Content Area */}
       <motion.div 
-        className="px-4 md:px-8 mt-6 md:mt-8 relative z-20 space-y-6 w-full max-w-[1440px] mx-auto"
+        className="px-4 md:px-6 mt-6 md:mt-8 relative z-20 space-y-6 w-full max-w-7xl mx-auto"
         variants={containerVariants}
         initial="hidden"
         animate="show"

@@ -27,7 +27,7 @@ export default function CommunityRisk() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex-1 w-full bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -35,7 +35,7 @@ export default function CommunityRisk() {
 
   if (!data || !data.villages || data.villages.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 pb-20 text-center">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20 text-center">
         <MobileHeader title={t('community.communityRisk')} />
         <div className="hidden md:flex px-6 py-5 items-center sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
           <button onClick={() => navigate(-1)} className="text-slate-800 absolute left-6"><ArrowLeft className="w-6 h-6" /></button>
@@ -68,7 +68,7 @@ export default function CommunityRisk() {
   const isOutbreak = clusters.fever >= 3 || clusters.weakness >= 3;
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20">
       <MobileHeader title={mainVillage.name} />
       <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
         <button onClick={() => navigate(-1)} className="text-slate-800">
@@ -80,7 +80,7 @@ export default function CommunityRisk() {
         <div className="w-6"></div> {/* Spacer */}
       </div>
 
-      <div className="px-6 pt-6 space-y-6">
+      <div className="px-6 pt-6 space-y-6 max-w-7xl mx-auto w-full">
 
         {isOutbreak && (
           <div className="bg-red-50 border border-red-200 p-4 rounded-2xl flex items-start gap-3 shadow-sm animate-pulse">

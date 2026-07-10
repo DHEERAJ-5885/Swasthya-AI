@@ -66,7 +66,7 @@ export default function AddPatient() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-white pb-20">
       <MobileHeader title={t('button.addPatient')} />
       <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-white z-10 border-b border-slate-50">
         <button onClick={() => navigate(-1)} className="text-slate-800">
@@ -76,7 +76,7 @@ export default function AddPatient() {
         <div className="w-6"></div> {/* Spacer for centering */}
       </div>
 
-      <div className="px-6 pt-4 pb-4 border-b border-slate-50 flex gap-3 justify-center">
+      <div className="px-6 pt-4 pb-4 border-b border-slate-50 flex gap-3 justify-center max-w-7xl mx-auto w-full">
         <button type="button" onClick={() => navigate('/patients')} className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-[10px] font-bold">
           <Mic className="w-4 h-4" /> {t('form.voiceIntake')}
         </button>
@@ -103,7 +103,7 @@ export default function AddPatient() {
         />
       </div>
 
-      <div className="px-6 pt-6">
+      <div className="px-6 pt-6 max-w-7xl mx-auto w-full">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">{t('form.fullName')}</label>

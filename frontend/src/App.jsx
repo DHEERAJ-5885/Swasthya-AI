@@ -69,15 +69,15 @@ function AppShell() {
     <div 
       key={token || 'guest'} 
       id="app-shell" 
-      className={`relative min-h-screen w-full bg-[#F8FAFC] ${
-        isLoginPage ? '' : isAuthenticated ? 'md:pl-64 pb-16 md:pb-0' : 'pb-16'
+      className={`relative flex h-screen w-full bg-[#F8FAFC] overflow-hidden ${
+        isLoginPage ? '' : 'pb-[80px] md:pb-0'
       }`}
     >
       <Toaster position="top-center" toastOptions={{ style: { fontSize: '12px', fontWeight: 600, borderRadius: '12px' } }} />
       {isAuthenticated && <HamburgerMenu />}
       {isAuthenticated && !isLoginPage && <DesktopSidebar />}
       
-      <main className="w-full max-w-[1600px] mx-auto min-h-screen flex flex-col">
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />

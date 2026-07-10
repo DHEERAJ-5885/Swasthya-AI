@@ -11,7 +11,7 @@ export default function ResultScreen() {
 
   if (!result) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+      <div className="flex-1 w-full bg-slate-50 flex items-center justify-center p-6 text-center">
         <div>
           <p className="text-sm font-semibold text-slate-700 mb-3">No screening result found.</p>
           <Button className="h-10 text-xs font-semibold rounded-xl" onClick={() => navigate(`/patients/${id}`)}>
@@ -41,12 +41,12 @@ export default function ResultScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20">
       <div className="px-6 py-5 sticky top-0 bg-slate-50 z-10 text-center">
         <h1 className="text-base font-bold text-slate-900">Health Intelligence Result</h1>
       </div>
 
-      <div className="px-6 pt-2 space-y-5">
+      <div className="px-6 pt-2 space-y-5 max-w-7xl mx-auto w-full">
         {/* Risk Level & Confidence Headers */}
         <div className="flex justify-between items-end gap-3 bg-white p-4 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
           <div className="flex-1 text-center">

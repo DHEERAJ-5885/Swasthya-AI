@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageCircle, X, Send, BrainCircuit } from 'lucide-react';
+import { MessageCircle, X, Send, BrainCircuit, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
-import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,22 +12,41 @@ export default function AIAssistant() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [portalRoot, setPortalRoot] = useState(null);
+  
+  const location = useLocation();
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     setPortalRoot(document.getElementById('app-shell'));
   }, []);
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, loading, isOpen]);
+
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
     
     const userMsg = input.trim();
+    const historyPayload = messages.slice(1).map(m => ({ sender: m.role, text: m.content }));
+    
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setInput('');
     setLoading(true);
 
+    const match = location.pathname.match(/^\/patients\/([a-f0-9]{24})/);
+    const patientId = match ? match[1] : null;
+
     try {
-      const res = await api.post('/chat', { message: userMsg });
-      setMessages(prev => [...prev, { role: 'assistant', content: res.data.reply }]);
+      const res = await api.post('/chat', { message: userMsg, history: historyPayload, patientId });
+      
+      if (res.data.isEmergency) {
+        toast.error('🚨 Emergency Alert Generated! High priority follow-up created.', { duration: 5000, icon: '🚨' });
+      }
+
+      setMessages(prev => [...prev, { role: 'assistant', content: res.data.reply, isEmergency: res.data.isEmergency }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble connecting right now. Please try again later." }]);
     }
@@ -52,7 +72,7 @@ export default function AIAssistant() {
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                    className="absolute bottom-24 right-4 w-[20rem] max-w-[90%] h-[28rem] bg-white rounded-2xl shadow-2xl border border-slate-100 flex flex-col z-50 overflow-hidden"
+                    className="absolute bottom-24 right-4 w-96 max-w-[calc(100vw-2rem)] h-[28rem] bg-white rounded-2xl shadow-2xl border border-slate-100 flex flex-col z-50 overflow-hidden"
                   >
                     {/* Header */}
                     <div className="bg-primary p-4 flex items-center justify-between text-white">
@@ -66,7 +86,12 @@ export default function AIAssistant() {
                     {/* Chat Area */}
                     <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50">
                       {messages.map((msg, i) => (
-                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                          {msg.isEmergency && (
+                            <div className="flex items-center gap-1 text-red-600 bg-red-50 px-2 py-1 rounded-md text-[10px] font-bold mb-1 border border-red-100">
+                              <AlertTriangle className="w-3 h-3" /> Emergency Alert
+                            </div>
+                          )}
                           <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${
                             msg.role === 'user'
                               ? 'bg-primary text-white rounded-br-sm'
@@ -85,6 +110,7 @@ export default function AIAssistant() {
                           </div>
                         </div>
                       )}
+                      <div ref={messagesEndRef} />
                     </div>
 
                     {/* Input Area */}
@@ -99,7 +125,8 @@ export default function AIAssistant() {
                       />
                       <button
                         onClick={sendMessage}
-                        className="bg-primary text-white p-2 rounded-xl hover:bg-primary/90 transition-colors"
+                        disabled={loading || !input.trim()}
+                        className="bg-primary text-white p-2 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
                       >
                         <Send className="w-4 h-4" />
                       </button>

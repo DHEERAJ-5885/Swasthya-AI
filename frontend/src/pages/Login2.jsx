@@ -67,7 +67,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-primary-dark to-primary w-full relative overflow-hidden">
+    <div className="flex flex-col flex-1 h-full bg-gradient-to-b from-primary-dark to-primary w-full relative overflow-y-auto overflow-x-hidden">
       <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
 
       <div className="relative z-10 pt-10 px-6 text-center">

@@ -221,18 +221,18 @@ export default function Reports() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+      <div className="flex-1 w-full bg-[#F8FAFC] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 md:pl-64 flex flex-col md:flex-row">
+    <div className="flex-1 w-full h-full bg-[#F8FAFC] flex flex-col md:flex-row overflow-hidden">
       <MobileHeader title={t('reports.healthReports')} />
       
       {/* Left List Pane */}
-      <div className="w-full md:w-[400px] lg:w-[450px] border-r border-slate-200 bg-[#F8FAFC] flex flex-col h-screen md:sticky md:top-0">
+      <div className="w-full md:w-[400px] lg:w-[450px] border-r border-slate-200 bg-[#F8FAFC] flex flex-col h-full overflow-hidden">
         <div className="p-6 pb-4 bg-[#F8FAFC]/80 backdrop-blur-md z-10 border-b border-slate-100 sticky top-[60px] md:top-0">
           <div className="hidden md:block">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">{t('reports.healthReports')}</h1>
@@ -298,7 +298,7 @@ export default function Reports() {
       </div>
 
       {/* Right Detail Pane */}
-      <div className={`flex-1 bg-white h-screen overflow-y-auto ${!selectedReport && 'hidden md:flex'}`}>
+      <div className={`flex-1 bg-white h-full overflow-y-auto ${!selectedReport && 'hidden md:flex'}`}>
         {selectedReport ? (
           <div className="max-w-3xl mx-auto w-full">
             <div className="p-6 md:p-10 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-md z-10">

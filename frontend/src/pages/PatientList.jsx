@@ -35,7 +35,7 @@ export default function PatientList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 md:pb-6">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-24 md:pb-6">
       <MobileHeader title={t('nav.patients')} />
       {/* Search Bar Area */}
       <div className="bg-slate-50 px-6 md:px-10 py-5 sticky md:top-0 top-[60px] z-10">
@@ -54,7 +54,7 @@ export default function PatientList() {
         </div>
       </div>
 
-      <div className="px-6 md:px-10">
+      <div className="px-6 md:px-10 w-full max-w-7xl mx-auto">
         {loading ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />

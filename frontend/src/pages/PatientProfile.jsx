@@ -71,7 +71,7 @@ export default function PatientProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex-1 bg-slate-50 w-full flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -79,7 +79,7 @@ export default function PatientProfile() {
 
   if (!patient) {
     return (
-      <div className="min-h-screen bg-slate-50 pb-20">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20">
         <div className="px-6 py-5 flex items-center justify-between sticky top-0 bg-slate-50 z-20 border-b border-slate-100">
           <button onClick={() => navigate('/patients')} className="text-slate-800">
             <ArrowLeft className="w-6 h-6" />
@@ -202,7 +202,7 @@ export default function PatientProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20">
       <MobileHeader 
         title={t('profile.profile')} 
         actions={
@@ -224,7 +224,7 @@ export default function PatientProfile() {
         </button>
       </div>
 
-      <div className="px-6 space-y-4">
+      <div className="px-6 space-y-4 max-w-7xl mx-auto w-full">
         {/* Profile Info Header */}
         <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100">
           {patient.photoUrl ? (

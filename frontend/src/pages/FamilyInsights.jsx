@@ -58,7 +58,7 @@ export default function FamilyInsights() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex-1 w-full bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -67,7 +67,7 @@ export default function FamilyInsights() {
   // Fallback to empty state if no family data or members
   if (!familyData || !familyData.members || familyData.members.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 pb-20">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20">
         <MobileHeader title={t('family.familyIntelligence')} />
         <div className="hidden md:flex px-6 py-5 items-center sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
           <button onClick={() => navigate(-1)} className="text-slate-800 absolute left-6"><ArrowLeft className="w-6 h-6" /></button>
@@ -88,7 +88,7 @@ export default function FamilyInsights() {
   const bannerLine = isHighRisk ? 'bg-red-200' : (isMediumRisk ? 'bg-orange-200' : 'bg-green-200');
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50 pb-20">
       <MobileHeader title={t('family.familyIntelligence')} />
       <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
         <button onClick={() => navigate(-1)} className="text-slate-800">
@@ -98,7 +98,7 @@ export default function FamilyInsights() {
         <div className="w-6"></div>
       </div>
 
-      <div className="px-6 pt-6 space-y-6">
+      <div className="px-6 pt-6 space-y-6 w-full max-w-7xl mx-auto">
         <div>
           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">{t('family.familyId')}</label>
           <select

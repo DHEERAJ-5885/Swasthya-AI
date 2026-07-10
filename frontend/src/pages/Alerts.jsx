@@ -56,14 +56,14 @@ export default function Alerts() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex-1 w-full bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 md:pb-6">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-[#F8FAFC] pb-24 md:pb-6">
       <div className="max-w-3xl mx-auto px-0 md:px-4">
       <MobileHeader title={t('alerts.notifications')} />
       <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">

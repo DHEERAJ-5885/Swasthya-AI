@@ -40,7 +40,7 @@ export default function DesktopSidebar() {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-100 h-screen fixed left-0 top-0 overflow-y-auto z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-100 h-screen flex-shrink-0 overflow-y-auto z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
       {/* Header / Logo */}
       <div className="p-6 pb-8">
         <div className="flex items-center gap-3 mb-1">

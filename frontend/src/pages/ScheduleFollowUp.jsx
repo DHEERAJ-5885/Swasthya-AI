@@ -51,7 +51,7 @@ export default function ScheduleFollowUp() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-white pb-20">
       <div className="px-6 py-5 flex items-center justify-between sticky top-0 bg-white z-10 border-b border-slate-50">
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
@@ -60,7 +60,7 @@ export default function ScheduleFollowUp() {
         <div className="w-6"></div> {/* Spacer for centering */}
       </div>
 
-      <div className="px-6 pt-6">
+      <div className="px-6 pt-6 max-w-7xl mx-auto w-full">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Select Date</label>
