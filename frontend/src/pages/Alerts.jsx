@@ -64,7 +64,7 @@ export default function Alerts() {
 
   return (
     <div className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-[#F8FAFC] pb-24 md:pb-6">
-      <div className="max-w-3xl mx-auto px-0 md:px-4">
+      <div className="w-full max-w-7xl mx-auto px-0 md:px-6">
       <MobileHeader title={t('alerts.notifications')} />
       <div className="hidden md:flex px-6 py-5 items-center justify-between sticky top-0 bg-slate-50 z-10 border-b border-slate-100">
         <button onClick={() => navigate(-1)} className="text-slate-800">
