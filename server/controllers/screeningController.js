@@ -40,8 +40,8 @@ const createScreening = async (req, res) => {
     
     await screening.save();
 
-    // Auto-create Emergency Alert and Notification
-    if (['High', 'Critical'].includes(finalResult.riskLevel) || finalResult.trendDirection === 'Critical Drift') {
+    // 1. Create Patient Alert if High Risk or Critical Drift
+    if (['High Risk'].includes(finalResult.riskLevel) || finalResult.trendDirection === 'Critical Drift') {
       const alert = new Alert({
         type: 'Emergency',
         title: 'Emergency Referral Required',
@@ -63,12 +63,13 @@ const createScreening = async (req, res) => {
       }
     }
 
-    // Auto-create FollowUp for declining trends or high risk
-    if (['Declining', 'Critical Drift'].includes(finalResult.trendDirection) || ['High', 'Critical'].includes(finalResult.riskLevel)) {
+    // 2. Schedule Follow-up if Declining, Critical, or High Risk
+    if (['Declining', 'Critical Drift'].includes(finalResult.trendDirection) || ['High Risk'].includes(finalResult.riskLevel)) {
       const FollowUp = require('../models/FollowUp');
       
-      let followUpDays = 3; // default
-      if (finalResult.trendDirection === 'Critical Drift' || ['High', 'Critical'].includes(finalResult.riskLevel)) followUpDays = 1;
+      let followUpDays = 7;
+      if (finalResult.trendDirection === 'Declining') followUpDays = 3;
+      if (finalResult.trendDirection === 'Critical Drift' || ['High Risk'].includes(finalResult.riskLevel)) followUpDays = 1;
       
       const followUpDate = new Date();
       followUpDate.setDate(followUpDate.getDate() + followUpDays);
@@ -77,8 +78,9 @@ const createScreening = async (req, res) => {
         patientId,
         date: followUpDate,
         notes: finalResult.followUpRecommendation || 'Urgent AI Drift Detection Follow-up',
-        priority: ['High', 'Critical'].includes(finalResult.riskLevel) ? 'High' : 'Medium',
-        status: 'Pending'
+        priority: ['High Risk'].includes(finalResult.riskLevel) ? 'High' : 'Medium',
+        status: 'Pending',
+        type: 'Routine'
       });
       await followUp.save();
       

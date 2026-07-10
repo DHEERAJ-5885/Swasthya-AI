@@ -9,8 +9,8 @@ router.get('/community-risk', authMiddleware, async (req, res) => {
     const patientIds = await Patient.find({ worker: req.userId }).distinct('_id');
 
     // Count high/medium/low cases in recent screenings
-    const high = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'High' });
-    const medium = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'Medium' });
+    const high = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'High Risk' });
+    const medium = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'Medium Risk' });
     const total = await Screening.countDocuments({ patientId: { $in: patientIds } });
     
     let risk = 'Low';
@@ -34,16 +34,16 @@ router.get('/insights', authMiddleware, async (req, res) => {
 
     // Aggregate screening counts
     const totalScreenings = await Screening.countDocuments({ patientId: { $in: patientIds } });
-    const highRiskCount = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'High' });
-    const mediumRiskCount = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'Medium' });
-    const lowRiskCount = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'Low' });
+    const highRiskCount = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'High Risk' });
+    const mediumRiskCount = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'Medium Risk' });
+    const lowRiskCount = await Screening.countDocuments({ patientId: { $in: patientIds }, 'result.riskLevel': 'Low Risk' });
 
     // Aggregate follow-ups predicted (using FollowUp model)
     const FollowUp = require('../models/FollowUp');
     const followUpsPredicted = await FollowUp.countDocuments({ patientId: { $in: patientIds }, status: { $ne: 'Completed' } });
 
     // Get high-risk patients
-    const highRiskPatientIds = await Screening.find({ patientId: { $in: patientIds }, 'result.riskLevel': 'High' }).distinct('patientId');
+    const highRiskPatientIds = await Screening.find({ patientId: { $in: patientIds }, 'result.riskLevel': 'High Risk' }).distinct('patientId');
     const highRiskPatients = await Patient.find({ _id: { $in: highRiskPatientIds } }).limit(10).select('name age village phone risk');
 
     // Generate AI Recommendations
@@ -161,19 +161,25 @@ router.get('/reports', authMiddleware, async (req, res) => {
     const recentScreenings = await Screening.find({ patientId: { $in: patientIds } })
       .sort({ createdAt: -1 })
       .limit(20)
-      .populate('patientId', 'name village phone');
+      .populate('patientId', 'name village phone age gender _id');
 
     const reports = recentScreenings.map(s => ({
       id: s._id,
-      title: s.result?.riskLevel === 'High' ? 'Critical Health Report' : 'Routine Screening Report',
+      title: s.result?.riskLevel === 'High Risk' ? 'Critical Health Report' : 'Routine Screening Report',
+      patientId: s.patientId?._id || 'Unknown',
       patientName: s.patientId?.name || 'Unknown',
+      age: s.patientId?.age || 'N/A',
+      gender: s.patientId?.gender || 'N/A',
       village: s.patientId?.village || 'Unknown',
       date: new Date(s.createdAt).toLocaleDateString(),
+      time: new Date(s.createdAt).toLocaleTimeString(),
+      healthScore: s.result?.healthScore || 'N/A',
       riskLevel: s.result?.riskLevel || 'Unknown',
       status: 'Generated',
       data: s.data,
       recommendation: s.result?.nextAction || 'Monitor health',
-      explanation: s.result?.explanation || 'Regular screening check.'
+      explanation: s.result?.explanation || 'Regular screening check.',
+      timestamp: new Date().toLocaleString()
     }));
 
     res.json(reports);

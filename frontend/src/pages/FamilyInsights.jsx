@@ -80,8 +80,8 @@ export default function FamilyInsights() {
     );
   }
 
-  const isHighRisk = familyData.riskLevel === 'High';
-  const isMediumRisk = familyData.riskLevel === 'Medium';
+  const isHighRisk = familyData.riskLevel === 'High Risk';
+  const isMediumRisk = familyData.riskLevel === 'Medium Risk';
   const bannerBg = isHighRisk ? 'bg-red-50 border-red-100' : (isMediumRisk ? 'bg-orange-50 border-orange-100' : 'bg-green-50 border-green-100');
   const bannerTitle = isHighRisk ? 'text-red-800' : (isMediumRisk ? 'text-orange-800' : 'text-green-800');
   const bannerText = isHighRisk ? 'text-red-700' : (isMediumRisk ? 'text-orange-700' : 'text-green-700');
@@ -115,7 +115,7 @@ export default function FamilyInsights() {
         <div className={`${bannerBg} border rounded-2xl p-4 flex gap-4 items-center shadow-sm`}>
           <div>
             <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${bannerTitle}`}>{t('family.familyInsight')}</h3>
-            <p className={`text-lg font-black leading-none ${bannerText}`}>{familyData.riskLevel === 'High' ? t('family.highRisk') : familyData.riskLevel === 'Medium' ? t('family.mediumRisk') : t('family.lowRisk')}</p>
+            <p className={`text-lg font-black leading-none ${bannerText}`}>{familyData.riskLevel === 'High Risk' ? t('family.highRisk') : familyData.riskLevel === 'Medium Risk' ? t('family.mediumRisk') : t('family.lowRisk')}</p>
           </div>
           <div className={`w-px h-10 ${bannerLine}`}></div>
           <p className={`text-xs font-semibold leading-relaxed flex-1 ${bannerText}`}>
@@ -144,7 +144,7 @@ export default function FamilyInsights() {
                     </div>
                   </div>
                   
-                  <p className={`text-[10px] font-bold ${riskColors[risk]}`}>{risk === 'High' ? t('family.highRisk') : risk === 'Medium' ? t('family.mediumRisk') : t('family.lowRisk')}</p>
+                  <p className={`text-[10px] font-bold ${riskColors[risk]}`}>{risk === 'High Risk' ? t('family.highRisk') : risk === 'Medium Risk' ? t('family.mediumRisk') : t('family.lowRisk')}</p>
                 </div>
               );
             })}

@@ -141,7 +141,7 @@ const getProfile = async (req, res) => {
 
     // Ensure stats reflect current numbers (fallback)
     const totalPatients = assignedPatients.length;
-    const highRiskPatients = assignedPatients.filter(p => p.risk === 'High' || p.risk === 'Critical').length;
+    const highRiskPatients = assignedPatients.filter(p => p.risk === 'High Risk').length;
 
     const worker = {
       ...workerDoc,

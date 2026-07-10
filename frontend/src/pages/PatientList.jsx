@@ -29,9 +29,9 @@ export default function PatientList() {
   const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   const riskColors = {
-    High: 'text-red-500',
-    Medium: 'text-orange-500',
-    Low: 'text-green-500'
+    'High Risk': 'text-red-500',
+    'Medium Risk': 'text-orange-500',
+    'Low Risk': 'text-green-500'
   };
 
   return (
@@ -88,7 +88,7 @@ export default function PatientList() {
             <div className="flex items-center gap-3 text-right">
               <div>
                 <p className={`text-[10px] font-bold ${riskColors[patient.risk] || 'text-slate-500'} mb-0.5`}>
-                  {patient.risk === 'High' ? t('patients.highRisk') : patient.risk === 'Medium' ? t('patients.mediumRisk') : patient.risk === 'Low' ? t('patients.lowRisk') : `${patient.risk} ${t('patients.risk')}`}
+                  {patient.risk === 'High Risk' ? t('patients.highRisk') : patient.risk === 'Medium Risk' ? t('patients.mediumRisk') : patient.risk === 'Low Risk' ? t('patients.lowRisk') : `${patient.risk || 'Unknown'} ${t('patients.risk')}`}
                 </p>
                 <p className="text-[10px] text-slate-400 font-medium">{patient.date}</p>
               </div>

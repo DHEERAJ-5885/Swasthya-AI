@@ -20,16 +20,16 @@ router.get('/:familyId', authMiddleware, async (req, res) => {
 
     // Generate quick AI insight for the family
     let insight = "Monitor family health regularly.";
-    let riskLevel = "Low";
+    let riskLevel = "Low Risk";
     
-    const highRiskCount = membersWithData.filter(m => m.latestScreening && m.latestScreening.riskLevel === 'High').length;
-    const mediumRiskCount = membersWithData.filter(m => m.latestScreening && m.latestScreening.riskLevel === 'Medium').length;
-
+    const highRiskCount = membersWithData.filter(m => m.latestScreening && m.latestScreening.riskLevel === 'High Risk').length;
+    const mediumRiskCount = membersWithData.filter(m => m.latestScreening && m.latestScreening.riskLevel === 'Medium Risk').length;
+    
     if (highRiskCount > 0) {
-      riskLevel = "High";
-      insight = `${highRiskCount} member(s) at high risk. Urgent family-level intervention recommended.`;
+      riskLevel = "High Risk";
+      insight = `${highRiskCount} family member(s) require immediate medical attention.`;
     } else if (mediumRiskCount > 0) {
-      riskLevel = "Medium";
+      riskLevel = "Medium Risk";
       insight = `${mediumRiskCount} member(s) showing moderate risk. Ensure proper nutrition and rest.`;
     }
 

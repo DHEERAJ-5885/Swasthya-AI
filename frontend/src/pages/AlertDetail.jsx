@@ -128,7 +128,7 @@ export default function AlertDetail() {
         {/* Patient Card */}
         {patient && (
           <Card className="p-4 border-slate-100 shadow-sm overflow-hidden relative">
-            <div className={`absolute top-0 right-0 w-2 h-full ${patient.risk === 'High' || patient.risk === 'Critical' ? 'bg-red-500' : patient.risk === 'Medium' ? 'bg-orange-500' : 'bg-green-500'}`}></div>
+            <div className={`absolute top-0 right-0 w-2 h-full ${patient.risk === 'High Risk' ? 'bg-red-500' : patient.risk === 'Medium Risk' ? 'bg-orange-500' : 'bg-green-500'}`}></div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">{t('alerts.patientInfo')}</p>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
@@ -167,7 +167,7 @@ export default function AlertDetail() {
             <div className="mt-4 flex gap-2 flex-wrap">
               <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
                 <p className="text-[10px] text-slate-400 font-semibold">{t('alerts.currentRisk')}</p>
-                <p className={`text-xs font-bold ${latestScreening.result?.riskLevel === 'High' || latestScreening.result?.riskLevel === 'Critical' ? 'text-red-600' : 'text-slate-700'}`}>
+                <p className={`text-xs font-bold ${latestScreening.result?.riskLevel === 'High Risk' ? 'text-red-600' : 'text-slate-700'}`}>
                   {latestScreening.result?.riskLevel || patient?.risk || t('alerts.unknown')}
                 </p>
               </div>
@@ -226,7 +226,7 @@ export default function AlertDetail() {
                   {idx !== previousScreenings.slice(0, 3).length - 1 && (
                     <div className="absolute top-6 bottom-[-16px] left-[7px] w-0.5 bg-slate-100 z-0"></div>
                   )}
-                  <div className={`w-4 h-4 rounded-full mt-0.5 z-10 ring-4 ring-white ${sc.result?.riskLevel === 'High' ? 'bg-red-400' : 'bg-slate-300'}`}></div>
+                  <div className={`w-4 h-4 rounded-full mt-0.5 z-10 ring-4 ring-white ${sc.result?.riskLevel === 'High Risk' ? 'bg-red-400' : 'bg-slate-300'}`}></div>
                   <div>
                     <p className="text-xs font-bold text-slate-800">{t('alerts.screeningRisk', { level: sc.result?.riskLevel })}</p>
                     <p className="text-[10px] text-slate-500">{new Date(sc.createdAt).toLocaleDateString()} • {t('alerts.trend')}: {sc.result?.driftStatus || t('alerts.stable')}</p>

@@ -39,9 +39,9 @@ router.get('/', async (req, res) => {
 
       villageData[village].total++;
 
-      const riskLevel = (s.result?.riskLevel || 'Low').toLowerCase();
-      if (riskLevel === 'critical' || riskLevel === 'high') villageData[village].highRisk++;
-      else if (riskLevel === 'medium' || riskLevel === 'moderate') villageData[village].mediumRisk++;
+      const riskLevel = s.result?.riskLevel || 'Low Risk';
+      if (riskLevel === 'High Risk') villageData[village].highRisk++;
+      else if (riskLevel === 'Medium Risk') villageData[village].mediumRisk++;
       else villageData[village].lowRisk++;
 
       const fever = String(s.data?.fever || '').toLowerCase();

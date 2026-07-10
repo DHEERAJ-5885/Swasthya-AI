@@ -39,7 +39,8 @@ const screeningSchema = new mongoose.Schema({
     extractedSymptoms: [String]
   },
   result: {
-    riskLevel: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'] },
+    riskLevel: { type: String, enum: ['Low Risk', 'Medium Risk', 'High Risk'] },
+    riskScore: Number,
     confidence: Number,
     reason: String,
     nextAction: String,

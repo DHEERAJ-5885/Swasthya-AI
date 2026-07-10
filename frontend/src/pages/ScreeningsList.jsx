@@ -62,16 +62,14 @@ export default function ScreeningsList() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {screenings.map(screening => {
               const rawRisk = screening.result?.riskLevel || 'Unknown';
-              const riskLevel = rawRisk === 'Critical' ? t('screeningsList.critical') :
-                                rawRisk === 'High' ? t('screeningsList.high') :
-                                rawRisk === 'Medium' ? t('screeningsList.medium') :
-                                rawRisk === 'Low' ? t('screeningsList.low') :
+              const riskLevel = rawRisk === 'High Risk' ? t('screeningsList.high') :
+                                rawRisk === 'Medium Risk' ? t('screeningsList.medium') :
+                                rawRisk === 'Low Risk' ? t('screeningsList.low') :
                                 t('screeningsList.unknown');
               const riskColors = {
-                'Critical': 'text-red-600 bg-red-50 border-red-100',
-                'High': 'text-red-600 bg-red-50 border-red-100',
-                'Medium': 'text-orange-600 bg-orange-50 border-orange-100',
-                'Low': 'text-emerald-600 bg-emerald-50 border-emerald-100',
+                'High Risk': 'text-red-600 bg-red-50 border-red-100',
+                'Medium Risk': 'text-orange-600 bg-orange-50 border-orange-100',
+                'Low Risk': 'text-emerald-600 bg-emerald-50 border-emerald-100',
                 'Unknown': 'text-slate-600 bg-slate-50 border-slate-200'
               };
               const colorClass = riskColors[rawRisk] || riskColors.Unknown;

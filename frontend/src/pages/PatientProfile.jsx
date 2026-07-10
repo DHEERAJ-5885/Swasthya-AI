@@ -249,8 +249,8 @@ export default function PatientProfile() {
           </div>
           <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 text-center flex flex-col justify-center">
             <p className="text-[10px] text-slate-500 font-medium mb-1">{t('profile.riskLevel')}</p>
-            <p className={`text-xs font-bold ${latestResult.riskLevel === 'High' || latestResult.riskLevel === 'Critical' ? 'text-red-500' : (latestResult.riskLevel === 'Low' ? 'text-green-500' : 'text-orange-500')}`}>
-              {latestResult.riskLevel === 'High' ? t('patients.highRisk') : latestResult.riskLevel === 'Low' ? t('patients.lowRisk') : latestResult.riskLevel === 'Medium' ? t('patients.mediumRisk') : latestResult.riskLevel || t('profile.unknown')}
+            <p className={`text-xs font-bold ${latestResult.riskLevel === 'High Risk' ? 'text-red-500' : (latestResult.riskLevel === 'Low Risk' ? 'text-green-500' : 'text-orange-500')}`}>
+              {latestResult.riskLevel === 'High Risk' ? t('patients.highRisk') : latestResult.riskLevel === 'Low Risk' ? t('patients.lowRisk') : latestResult.riskLevel === 'Medium Risk' ? t('patients.mediumRisk') : latestResult.riskLevel || t('profile.unknown')}
             </p>
           </div>
           <div className="bg-white p-3 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 text-center flex flex-col justify-center">
@@ -372,7 +372,7 @@ export default function PatientProfile() {
                     {familyData.members?.map((member) => (
                       <div key={member._id} className="flex items-center justify-between text-[10px]">
                         <span className="text-slate-700 font-semibold">{member.name}</span>
-                        <span className="text-slate-500">{member.latestScreening?.riskLevel === 'High' ? t('patients.highRisk') : member.latestScreening?.riskLevel === 'Medium' ? t('patients.mediumRisk') : member.latestScreening?.riskLevel === 'Low' ? t('patients.lowRisk') : `${member.latestScreening?.riskLevel || t('profile.unknown')} ${t('patients.risk')}`}</span>
+                        <span className="text-slate-500">{member.latestScreening?.riskLevel === 'High Risk' ? t('patients.highRisk') : member.latestScreening?.riskLevel === 'Medium Risk' ? t('patients.mediumRisk') : member.latestScreening?.riskLevel === 'Low Risk' ? t('patients.lowRisk') : `${member.latestScreening?.riskLevel || t('profile.unknown')} ${t('patients.risk')}`}</span>
                       </div>
                     ))}
                   </div>

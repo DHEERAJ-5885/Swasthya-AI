@@ -33,29 +33,105 @@ export default function Reports() {
     
     try {
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
       
-      // Header
+      // Header Background
       doc.setFillColor(79, 70, 229); // Primary color
-      doc.rect(0, 0, 210, 30, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(20);
-      doc.text(t('reports.reportTitlePdf'), 15, 20);
+      doc.rect(0, 0, pageWidth, 35, 'F');
       
-      doc.setTextColor(50, 50, 50);
-      doc.setFontSize(14);
-      doc.text(report.title, 15, 45);
+      // Logo / Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("SWASTHYA AI", 15, 20);
       
       doc.setFontSize(10);
-      doc.text(`${t('reports.patientPdf')}${report.patientName}`, 15, 55);
-      doc.text(`${t('reports.villagePdf')}${report.village}`, 15, 62);
-      doc.text(`${t('reports.datePdf')}${report.date}`, 15, 69);
-      doc.text(`${t('reports.riskLevelPdf')}${report.riskLevel}`, 15, 76);
+      doc.setFont("helvetica", "normal");
+      doc.text("Clinical Screening Report", 15, 28);
       
-      // AutoTable for Vitals/Symptoms
+      // Report ID & Date (Right aligned in header)
+      doc.setFontSize(10);
+      doc.text(`Report ID: #${(report.id || '').substring(0,8).toUpperCase()}`, pageWidth - 15, 20, { align: 'right' });
+      doc.text(`Date: ${report.date} ${report.time || ''}`, pageWidth - 15, 28, { align: 'right' });
+      
+      // Section: Patient Information
+      let currentY = 45;
+      doc.setTextColor(79, 70, 229);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Patient Information", 15, currentY);
+      
+      doc.setDrawColor(220, 220, 220);
+      doc.line(15, currentY + 3, pageWidth - 15, currentY + 3);
+      currentY += 10;
+      
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      
+      const leftColX = 15;
+      const rightColX = pageWidth / 2 + 10;
+      
+      doc.text(`Patient Name: ${report.patientName}`, leftColX, currentY);
+      doc.text(`Patient ID: ${(report.patientId || 'N/A').toString().substring(0,8)}`, rightColX, currentY);
+      currentY += 8;
+      
+      doc.text(`Age: ${report.age || 'N/A'}`, leftColX, currentY);
+      doc.text(`Gender: ${report.gender || 'N/A'}`, rightColX, currentY);
+      currentY += 8;
+      
+      doc.text(`Village: ${report.village}`, leftColX, currentY);
+      currentY += 12;
+      
+      // Section: Health Status
+      doc.setTextColor(79, 70, 229);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Health Status & Assessment", 15, currentY);
+      doc.line(15, currentY + 3, pageWidth - 15, currentY + 3);
+      currentY += 10;
+      
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(10);
+      
+      // Determine risk color
+      let riskColor = [34, 197, 94]; // Green for Low
+      if (report.riskLevel === 'High Risk') riskColor = [239, 68, 68]; // Red
+      if (report.riskLevel === 'Medium Risk') riskColor = [249, 115, 22]; // Orange
+      
+      doc.text(`Health Score:`, leftColX, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${report.healthScore !== undefined ? report.healthScore : 'N/A'}/100`, leftColX + 25, currentY);
+      
+      doc.setFont("helvetica", "normal");
+      doc.text(`Risk Level:`, rightColX, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
+      doc.text(`${report.riskLevel}`, rightColX + 22, currentY);
+      currentY += 10;
+      
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("AI Risk Assessment:", 15, currentY);
+      doc.setFont("helvetica", "normal");
+      
+      const splitAssessment = doc.splitTextToSize(report.explanation || 'No assessment provided.', pageWidth - 30);
+      currentY += 6;
+      doc.text(splitAssessment, 15, currentY);
+      currentY += (splitAssessment.length * 5) + 6;
+      
+      // Check if we need a new page for Vitals/Symptoms
+      if (currentY > 230) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      // Vitals & Symptoms AutoTable
       const tableData = [];
       if (report.data) {
         Object.keys(report.data).forEach(key => {
-          if (report.data[key] && report.data[key] !== 'N/A') {
+          if (report.data[key] && report.data[key] !== 'N/A' && report.data[key] !== '') {
             const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
             tableData.push([formattedKey, report.data[key]]);
           }
@@ -64,40 +140,77 @@ export default function Reports() {
 
       if (tableData.length > 0) {
         doc.autoTable({
-          startY: 85,
-          head: [[t('reports.metricSymptomPdf'), t('reports.valuePdf')]],
+          startY: currentY,
+          head: [['Metric / Symptom', 'Recorded Value']],
           body: tableData,
           theme: 'grid',
-          headStyles: { fillColor: [79, 70, 229] }
+          headStyles: { fillColor: [79, 70, 229] },
+          margin: { left: 15, right: 15 }
         });
+        currentY = doc.lastAutoTable.finalY + 15;
       }
-
-      // AI Insights Section
-      const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : 90;
-      doc.setFontSize(12);
+      
+      if (currentY > 230) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      // Section: Recommendations
       doc.setTextColor(79, 70, 229);
-      doc.text(t('reports.aiHealthAssessmentPdf'), 15, finalY);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Action Plan", 15, currentY);
+      doc.line(15, currentY + 3, pageWidth - 15, currentY + 3);
+      currentY += 10;
       
+      doc.setTextColor(50, 50, 50);
       doc.setFontSize(10);
-      doc.setTextColor(80, 80, 80);
+      doc.setFont("helvetica", "bold");
+      doc.text("AI Recommendations:", 15, currentY);
+      doc.setFont("helvetica", "normal");
+      const splitRec = doc.splitTextToSize(report.recommendation || 'Follow up normally.', pageWidth - 30);
+      currentY += 6;
+      doc.text(splitRec, 15, currentY);
+      currentY += (splitRec.length * 5) + 4;
       
-      const splitExplanation = doc.splitTextToSize(`${t('reports.explanationPdf')}${report.explanation}`, 180);
-      doc.text(splitExplanation, 15, finalY + 8);
+      doc.setFont("helvetica", "bold");
+      doc.text("Follow-up Schedule:", 15, currentY);
+      doc.setFont("helvetica", "normal");
+      let followupText = "Follow-up in 1 month.";
+      if (report.riskLevel === 'High Risk') followupText = "Immediate follow-up required (within 24 hours).";
+      else if (report.riskLevel === 'Medium Risk') followupText = "Follow-up within 7 days.";
+      currentY += 6;
+      doc.text(followupText, 15, currentY);
+      currentY += 10;
       
-      const nextActionY = finalY + 8 + (splitExplanation.length * 5) + 5;
-      const splitAction = doc.splitTextToSize(`${t('reports.recommendationPdf')}${report.recommendation}`, 180);
-      doc.text(splitAction, 15, nextActionY);
-
-      // Footer
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(t('reports.footerPdf'), 105, 290, { align: 'center' });
+      if (report.riskLevel === 'High Risk') {
+        doc.setTextColor(239, 68, 68);
+        doc.setFont("helvetica", "bold");
+        doc.text("⚠️ EMERGENCY RECOMMENDATION:", 15, currentY);
+        doc.setFont("helvetica", "normal");
+        const emerg = doc.splitTextToSize("Patient shows high risk indicators. Immediate referral to the nearest Primary Health Centre (PHC) or hospital is strongly recommended. Please alert local medical authorities if necessary.", pageWidth - 30);
+        currentY += 6;
+        doc.text(emerg, 15, currentY);
+      }
+      
+      // Footer on all pages
+      const pageCount = doc.internal.getNumberOfPages();
+      for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont("helvetica", "italic");
+        doc.text("Generated by Swasthya AI", pageWidth / 2, 285, { align: 'center' });
+        doc.text(`Timestamp: ${report.timestamp || new Date().toLocaleString()}`, pageWidth / 2, 290, { align: 'center' });
+        doc.text(`Page ${i} of ${pageCount}`, pageWidth - 15, 290, { align: 'right' });
+      }
 
       doc.save(`Swasthya_Report_${report.patientName.replace(/\s+/g, '_')}_${report.date.replace(/\//g, '-')}.pdf`);
       toast.success(t('reports.downloadSuccess'));
     } catch (e) {
       console.error(e);
-      toast.error(t('reports.downloadFail'));
+      // Show the real error message to the user
+      toast.error(`Unable to generate PDF. ${e.message || 'Please try again.'}`);
     }
   };
 
@@ -158,7 +271,7 @@ export default function Reports() {
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-lg ${report.riskLevel === 'High' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                  <div className={`p-1.5 rounded-lg ${report.riskLevel === 'High Risk' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
                     <FileText className="w-4 h-4" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 line-clamp-1">{report.title}</h3>
@@ -192,7 +305,7 @@ export default function Reports() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${
-                    selectedReport.riskLevel === 'High' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
+                    selectedReport.riskLevel === 'High Risk' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
                   }`}>
                     {selectedReport.riskLevel} {t('reports.risk')}
                   </span>

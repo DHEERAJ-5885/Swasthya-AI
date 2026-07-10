@@ -49,7 +49,7 @@ const analyzePatientData = async (data, previousData = null) => {
   prompt += `
     
     Return a JSON response with the following exact keys:
-    - riskLevel: "Low", "Medium", "High", or "Critical"
+    - riskScore: number between 0 and 100 (where 0 is perfectly healthy, 100 is severe critical danger)
     - confidence: number between 0 and 100
     - reason: brief explanation of the most critical issues detected
     - nextAction: Must be exactly one of: "revisit in 3 days", "refer immediately", "monitor weekly", "home care sufficient"
@@ -74,7 +74,12 @@ const analyzePatientData = async (data, previousData = null) => {
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" }
       });
-      return JSON.parse(response.choices[0].message.content);
+      const aiRes = JSON.parse(response.choices[0].message.content);
+      aiRes.riskScore = aiRes.riskScore || 20; // fallback default
+      if (aiRes.riskScore < 40) aiRes.riskLevel = 'Low Risk';
+      else if (aiRes.riskScore <= 70) aiRes.riskLevel = 'Medium Risk';
+      else aiRes.riskLevel = 'High Risk';
+      return aiRes;
     } catch (e) {
       console.error("Groq failed, falling back", e);
     }
@@ -86,7 +91,12 @@ const analyzePatientData = async (data, previousData = null) => {
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" }
       });
-      return JSON.parse(response.choices[0].message.content);
+      const aiRes = JSON.parse(response.choices[0].message.content);
+      aiRes.riskScore = aiRes.riskScore || 20; // fallback default
+      if (aiRes.riskScore < 40) aiRes.riskLevel = 'Low Risk';
+      else if (aiRes.riskScore <= 70) aiRes.riskLevel = 'Medium Risk';
+      else aiRes.riskLevel = 'High Risk';
+      return aiRes;
     } catch (e) {
       console.error("OpenAI failed, falling back", e);
     }
@@ -119,8 +129,9 @@ const ruleBasedFallback = (data, previousData) => {
     reason.push(`Voice reported: ${data.extractedSymptoms.join(', ')}`);
   }
   
-  let riskLevel = 'Low';
+  let riskLevel = 'Low Risk';
   let nextAction = 'home care sufficient';
+  let riskScore = Math.min(100, score * 10);
 
   const emergencyDetected =
     data.fever?.toLowerCase() === 'high' &&
@@ -128,17 +139,18 @@ const ruleBasedFallback = (data, previousData) => {
     data.appetite?.toLowerCase() === 'low';
 
   if (emergencyDetected) {
-    riskLevel = 'Critical';
-    nextAction = 'refer immediately';
-  } else if (score >= 8) {
-    riskLevel = 'High';
-    nextAction = 'refer immediately';
-  } else if (score >= 5) {
-    riskLevel = 'Medium';
-    nextAction = 'revisit in 3 days';
-  } else if (score >= 2) {
-    riskLevel = 'Low';
+    riskScore = Math.max(riskScore, 85);
+  }
+
+  if (riskScore < 40) {
+    riskLevel = 'Low Risk';
     nextAction = 'monitor weekly';
+  } else if (riskScore <= 70) {
+    riskLevel = 'Medium Risk';
+    nextAction = 'revisit in 3 days';
+  } else {
+    riskLevel = 'High Risk';
+    nextAction = 'refer immediately';
   }
 
   let driftStatus = 'Stable';
@@ -174,6 +186,7 @@ const ruleBasedFallback = (data, previousData) => {
 
   return {
     riskLevel,
+    riskScore,
     confidence: Math.min(100, 60 + score * 5),
     reason: reason.length > 0 ? `Issues detected: ${reason.slice(0,3).join(', ')}` : 'Patient appears healthy.',
     nextAction,

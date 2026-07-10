@@ -238,7 +238,7 @@ export default function ScreeningFlow() {
             <div className="flex items-center justify-between mt-2">
               <div>
                 <p className="text-xs font-semibold text-slate-900">
-                  {previousScreening.result?.riskLevel === 'High' ? t('patients.highRisk') : previousScreening.result?.riskLevel === 'Low' ? t('patients.lowRisk') : previousScreening.result?.riskLevel === 'Medium' ? t('patients.mediumRisk') : previousScreening.result?.riskLevel ? `${previousScreening.result.riskLevel} ${t('screening.risk')}` : `${t('screening.unknown')} ${t('screening.risk')}`}
+                  {previousScreening.result?.riskLevel === 'High Risk' ? t('patients.highRisk') : previousScreening.result?.riskLevel === 'Low Risk' ? t('patients.lowRisk') : previousScreening.result?.riskLevel === 'Medium Risk' ? t('patients.mediumRisk') : previousScreening.result?.riskLevel ? `${previousScreening.result.riskLevel}` : `${t('screening.unknown')} ${t('screening.risk')}`}
                 </p>
                 <p className="text-[10px] text-slate-500">{new Date(previousScreening.createdAt).toLocaleDateString()}</p>
               </div>

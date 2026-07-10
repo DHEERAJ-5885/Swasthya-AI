@@ -16,8 +16,8 @@ const getDashboardStats = async (req, res) => {
       { $group: { _id: "$patientId", latestScreening: { $first: "$$ROOT" } } }
     ]);
     
-    const highRiskPatients = latestScreenings.filter(s =>
-      ['High', 'Critical'].includes(s.latestScreening.result?.riskLevel)
+    const highRiskPatients = latestScreenings.filter(s => 
+      ['High Risk'].includes(s.latestScreening.result?.riskLevel)
     ).length;
     
     const decliningDriftPatients = latestScreenings.filter(s => 

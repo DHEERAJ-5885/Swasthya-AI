@@ -23,9 +23,9 @@ export default function ResultScreen() {
   }
 
   const risk = result.riskLevel?.toUpperCase() || 'UNKNOWN';
-  const isHighRisk = risk === 'HIGH' || risk === 'CRITICAL';
-  const riskColor = risk === 'CRITICAL' ? 'bg-[#991B1B]' : (risk === 'HIGH' ? 'bg-[#EF4444]' : (risk === 'MEDIUM' ? 'bg-[#F59E0B]' : 'bg-[#22C55E]'));
-  const lightColor = risk === 'CRITICAL' ? 'bg-red-100 text-red-800' : (isHighRisk ? 'bg-red-50 text-red-600' : (risk === 'MEDIUM' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600'));
+  const isHighRisk = risk === 'HIGH RISK' || risk === 'CRITICAL';
+  const riskColor = risk === 'CRITICAL' ? 'bg-[#991B1B]' : (risk === 'HIGH RISK' ? 'bg-[#EF4444]' : (risk === 'MEDIUM RISK' ? 'bg-[#F59E0B]' : 'bg-[#22C55E]'));
+  const lightColor = risk === 'CRITICAL' ? 'bg-red-100 text-red-800' : (isHighRisk ? 'bg-red-50 text-red-600' : (risk === 'MEDIUM RISK' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600'));
 
   const getTrendIcon = () => {
     if (result.trend === 'Critical Drift' || result.trend === 'Declining') return <TrendingDown className="w-5 h-5 text-red-500" />;
