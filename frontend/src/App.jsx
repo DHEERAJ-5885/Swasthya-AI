@@ -21,6 +21,7 @@ import AIInsights from './pages/AIInsights';
 import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
 import AIAssistantPage from './pages/AIAssistantPage';
+import FollowUpCalendar from './pages/FollowUpCalendar';
 import HamburgerMenu from './components/HamburgerMenu';
 import AIAssistant from './components/AIAssistant';
 import BottomNav from './components/BottomNav';
@@ -89,6 +90,7 @@ function AppShell() {
           <Route path="/patients/:id/screen" element={<PrivateRoute><ScreeningFlow /></PrivateRoute>} />
           <Route path="/patients/:id/result" element={<PrivateRoute><ResultScreen /></PrivateRoute>} />
           <Route path="/follow-ups" element={<PrivateRoute><FollowUpList /></PrivateRoute>} />
+          <Route path="/calendar" element={<PrivateRoute><FollowUpCalendar /></PrivateRoute>} />
           <Route path="/patients/:id/schedule-follow-up" element={<PrivateRoute><ScheduleFollowUp /></PrivateRoute>} />
           <Route path="/family-insights" element={<PrivateRoute><FamilyInsights /></PrivateRoute>} />
           <Route path="/community-risk" element={<PrivateRoute><CommunityRisk /></PrivateRoute>} />

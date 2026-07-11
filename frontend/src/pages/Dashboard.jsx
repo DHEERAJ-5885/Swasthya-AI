@@ -464,6 +464,117 @@ export default function Dashboard() {
             </Card>
           </motion.div>
 
+          {/* Upcoming Follow-ups */}
+          <motion.div variants={itemVariants} className="lg:col-span-3 xl:col-span-4 mt-6">
+            <Card className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 rounded-3xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow">
+              <CardContent className="p-0">
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" /> Upcoming Follow-ups
+                  </h3>
+                  <button onClick={() => navigate('/calendar')} className="text-xs font-bold text-primary hover:text-primary-dark flex items-center gap-1">
+                    View Calendar <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                  {/* Today */}
+                  <div className="p-6 bg-slate-50/50">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Today</h4>
+                    <div className="space-y-3">
+                      {data.upcomingFollowUps?.filter(f => {
+                        const d = new Date(f.date);
+                        const today = new Date();
+                        return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+                      }).map(f => (
+                        <div key={f._id} onClick={() => navigate(`/patients/${f.patientId}`)} className="bg-white p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-primary/50 transition-colors shadow-sm">
+                          <p className="text-sm font-bold text-slate-900 truncate">{f.patientName}</p>
+                          <p className="text-xs text-slate-500 font-medium truncate">{f.reason}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">{f.time || 'All Day'}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${f.riskLevel === 'High Risk' ? 'bg-red-50 text-red-600' : f.riskLevel === 'Medium Risk' ? 'bg-orange-50 text-orange-600' : 'bg-emerald-50 text-emerald-600'}`}>{f.riskLevel}</span>
+                          </div>
+                        </div>
+                      ))}
+                      {(!data.upcomingFollowUps || data.upcomingFollowUps.filter(f => new Date(f.date).toDateString() === new Date().toDateString()).length === 0) && (
+                        <p className="text-xs text-slate-400 font-medium text-center py-4">No follow-ups today</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tomorrow */}
+                  <div className="p-6">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Tomorrow</h4>
+                    <div className="space-y-3">
+                      {data.upcomingFollowUps?.filter(f => {
+                        const d = new Date(f.date);
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        return d.getDate() === tomorrow.getDate() && d.getMonth() === tomorrow.getMonth() && d.getFullYear() === tomorrow.getFullYear();
+                      }).map(f => (
+                        <div key={f._id} onClick={() => navigate(`/patients/${f.patientId}`)} className="bg-white p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-primary/50 transition-colors shadow-sm">
+                          <p className="text-sm font-bold text-slate-900 truncate">{f.patientName}</p>
+                          <p className="text-xs text-slate-500 font-medium truncate">{f.reason}</p>
+                        </div>
+                      ))}
+                      {(!data.upcomingFollowUps || data.upcomingFollowUps.filter(f => {
+                        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+                        return new Date(f.date).toDateString() === tomorrow.toDateString();
+                      }).length === 0) && (
+                        <p className="text-xs text-slate-400 font-medium text-center py-4">No follow-ups tomorrow</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Overdue */}
+                  <div className="p-6">
+                    <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-4">Overdue</h4>
+                    <div className="space-y-3">
+                      {data.upcomingFollowUps?.filter(f => {
+                        const d = new Date(f.date);
+                        const today = new Date();
+                        today.setHours(0,0,0,0);
+                        return d < today;
+                      }).map(f => (
+                        <div key={f._id} onClick={() => navigate(`/patients/${f.patientId}`)} className="bg-red-50 p-3 rounded-xl border border-red-100 cursor-pointer hover:border-red-300 transition-colors shadow-sm">
+                          <p className="text-sm font-bold text-slate-900 truncate">{f.patientName}</p>
+                          <p className="text-xs text-slate-500 font-medium truncate">{new Date(f.date).toLocaleDateString()}</p>
+                        </div>
+                      ))}
+                      {(!data.upcomingFollowUps || data.upcomingFollowUps.filter(f => new Date(f.date) < new Date(new Date().setHours(0,0,0,0))).length === 0) && (
+                        <p className="text-xs text-slate-400 font-medium text-center py-4">No overdue follow-ups</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Next 7 Days */}
+                  <div className="p-6">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Upcoming</h4>
+                    <div className="space-y-3">
+                      {data.upcomingFollowUps?.filter(f => {
+                        const d = new Date(f.date);
+                        const today = new Date();
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        return d > tomorrow; // strictly after tomorrow
+                      }).map(f => (
+                        <div key={f._id} onClick={() => navigate(`/patients/${f.patientId}`)} className="bg-white p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-primary/50 transition-colors shadow-sm flex justify-between items-center">
+                          <div className="overflow-hidden">
+                            <p className="text-sm font-bold text-slate-900 truncate">{f.patientName}</p>
+                            <p className="text-[10px] text-slate-500 font-medium truncate">{f.reason}</p>
+                          </div>
+                          <div className="text-right shrink-0 ml-2 text-xs font-bold text-slate-400">
+                            {new Date(f.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
         </div>
       </motion.div>
 

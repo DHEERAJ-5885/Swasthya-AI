@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, Users, Stethoscope, Bell, Activity, UsersRound as FamilyIcon, 
-  LogOut, Settings, BarChart2, FileText, MessageSquare, ShieldPlus, ChevronDown
+  LogOut, Settings, BarChart2, FileText, MessageSquare, ShieldPlus, ChevronDown, Calendar
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -31,6 +31,7 @@ export default function DesktopSidebar() {
     { icon: Users, label: t('nav.patients'), path: '/patients' },
     { icon: Stethoscope, label: t('nav.screenings'), path: '/screenings' },
     { icon: Bell, label: t('nav.alerts'), path: '/alerts', badge: unreadCount > 0 ? unreadCount : null },
+    { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: FamilyIcon, label: t('nav.familyInsights'), path: '/family-insights' },
     { icon: Activity, label: t('nav.communityRisk'), path: '/community-risk' },
     { icon: BarChart2, label: t('nav.analytics'), path: '/analytics' },

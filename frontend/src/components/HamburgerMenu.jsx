@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   X, Home, Users, AlertCircle, Stethoscope, BrainCircuit, 
-  LogOut, User, Activity, UsersRound, BarChart2, FileText, MessageSquare 
+  LogOut, User, Activity, UsersRound, BarChart2, FileText, MessageSquare, Calendar 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -37,6 +37,7 @@ export default function HamburgerMenu() {
     { icon: Stethoscope, label: t('nav.screenings'), path: '/screenings' },
     { icon: BrainCircuit, label: t('dashboard.aiHealthInsights'), path: '/ai-insights' },
     { icon: AlertCircle, label: t('nav.alerts'), path: '/alerts' },
+    { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: UsersRound, label: t('nav.familyInsights'), path: '/family-insights' },
     { icon: Activity, label: t('nav.communityRisk'), path: '/community-risk' },
     { icon: BarChart2, label: t('nav.analytics'), path: '/analytics' },

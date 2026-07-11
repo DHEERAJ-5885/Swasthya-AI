@@ -395,14 +395,23 @@ export default function PatientProfile() {
             </Card>
             <Card className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
               <CardContent className="p-4">
-                <p className="text-xs font-bold text-slate-900 mb-2">{t('profile.followups')}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold text-slate-900">{t('profile.followups')}</p>
+                  <Button onClick={() => navigate(`/patients/${id}/schedule-follow-up`)} variant="outline" className="h-6 text-[10px] px-2 py-0 border-primary text-primary">Schedule</Button>
+                </div>
                 {followUps.length === 0 ? (
                   <p className="text-[10px] text-slate-500">{t('profile.noFollowups')}</p>
                 ) : (
                   followUps.slice(0, 5).map((f) => (
-                    <div key={f._id} className="flex items-center justify-between text-[10px] text-slate-600 mb-1">
-                      <span>{new Date(f.date).toLocaleDateString()}</span>
-                      <span>{f.status}</span>
+                    <div key={f._id} className="flex flex-col gap-1 text-[10px] text-slate-600 mb-2 pb-2 border-b border-slate-50 last:border-0 last:pb-0 last:mb-0">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800">{new Date(f.date).toLocaleDateString()} {f.time && `at ${f.time}`}</span>
+                        <span className={`px-2 py-0.5 rounded-md font-bold ${f.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' : f.status === 'Missed' ? 'bg-slate-100 text-slate-500' : 'bg-orange-50 text-orange-600'}`}>{f.status}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="truncate pr-2">{f.reason || f.notes || 'Routine follow-up'}</span>
+                        <span className={`shrink-0 font-bold ${f.riskLevel === 'High Risk' || f.riskLevel === 'Critical' ? 'text-red-500' : 'text-slate-400'}`}>{f.riskLevel}</span>
+                      </div>
                     </div>
                   ))
                 )}
@@ -463,10 +472,15 @@ export default function PatientProfile() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          <Button className="flex-1 h-12 text-sm font-semibold shadow-lg shadow-primary/30 rounded-xl" onClick={() => navigate(`/patients/${id}/screen`)}>
-            {t('profile.startScreening')}
-          </Button>
+        <div className="flex flex-col gap-3 mt-6">
+          <div className="flex gap-3">
+            <Button className="flex-1 h-12 text-sm font-semibold shadow-lg shadow-primary/30 rounded-xl" onClick={() => navigate(`/patients/${id}/screen`)}>
+              {t('profile.startScreening')}
+            </Button>
+            <Button className="flex-1 h-12 text-sm font-semibold bg-white text-primary border border-primary shadow-sm rounded-xl hover:bg-primary/5" onClick={() => navigate(`/patients/${id}/schedule-follow-up`)}>
+              Schedule Follow-up
+            </Button>
+          </div>
           <Button
             variant="danger"
             className="h-12 px-5 text-sm font-semibold rounded-xl"

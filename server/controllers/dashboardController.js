@@ -140,6 +140,27 @@ const getDashboardStats = async (req, res) => {
       return Array.from({length: 7}, () => ({ v: Math.max(0, baseValue + Math.floor(Math.random() * 10 - 5)) }));
     };
 
+    // Upcoming Follow-ups (Overdue + Next 7 days)
+    const next7Days = new Date(startOfDay);
+    next7Days.setDate(next7Days.getDate() + 7);
+    const upcomingFollowUps = await FollowUp.find({
+      workerId: req.userId,
+      status: 'Pending',
+      date: { $lte: next7Days } // overdue + next 7 days
+    }).sort({ date: 1 }).limit(10).populate('patientId', 'name village');
+
+    const formattedUpcomingFollowUps = upcomingFollowUps.map(f => ({
+      _id: f._id,
+      patientId: f.patientId?._id,
+      patientName: f.patientName || f.patientId?.name || 'Unknown',
+      village: f.village || f.patientId?.village || 'Unknown',
+      date: f.date,
+      time: f.time,
+      reason: f.reason || f.notes || 'Routine follow-up',
+      riskLevel: f.riskLevel,
+      status: f.status
+    }));
+
     res.json({
       totalPatients,
       highRiskPatients,
@@ -158,7 +179,8 @@ const getDashboardStats = async (req, res) => {
         highRisk: generateSparkline(highRiskPatients),
         followUps: generateSparkline(followUpsToday),
         screenings: generateSparkline(screeningsToday)
-      }
+      },
+      upcomingFollowUps: formattedUpcomingFollowUps
     });
   } catch (err) {
     console.error('Dashboard Stats Error:', err);

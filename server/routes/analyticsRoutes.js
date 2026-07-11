@@ -134,19 +134,68 @@ router.get('/advanced', authMiddleware, async (req, res) => {
       weeklyScreenings.push({ day: dayStr, count: found ? found.count : 0 });
     }
 
-    // Follow-up Completion (dummy aggregated data since actual completion history requires full audit)
-    const followUpData = [
-      { name: 'Week 1', completed: 12, missed: 2 },
-      { name: 'Week 2', completed: 19, missed: 4 },
-      { name: 'Week 3', completed: 15, missed: 1 },
-      { name: 'Week 4', completed: 22, missed: 0 }
-    ];
+    // Real Follow-up Completion Data
+    const realFollowUps = await FollowUp.aggregate([
+      { $match: { workerId: req.userId } },
+      { $group: {
+        _id: { $week: "$date" },
+        completed: { $sum: { $cond: [{ $eq: ["$status", "Completed"] }, 1, 0] } },
+        missed: { $sum: { $cond: [{ $eq: ["$status", "Missed"] }, 1, 0] } },
+        pending: { $sum: { $cond: [{ $eq: ["$status", "Pending"] }, 1, 0] } },
+        total: { $sum: 1 }
+      }},
+      { $sort: { _id: 1 } },
+      { $limit: 4 }
+    ]);
+    
+    const followUpData = realFollowUps.map((w, idx) => ({
+      name: `Week ${idx + 1}`,
+      completed: w.completed,
+      missed: w.missed,
+      pending: w.pending,
+      total: w.total
+    }));
+
+    if (followUpData.length === 0) {
+      followUpData.push({ name: 'Week 1', completed: 0, missed: 0, pending: 0, total: 0 });
+    }
+
+    // Village-wise Follow-ups
+    const villageFollowUpsRaw = await FollowUp.aggregate([
+      { $match: { workerId: req.userId } },
+      { $group: {
+        _id: "$village",
+        count: { $sum: 1 },
+        highRisk: { $sum: { $cond: [{ $eq: ["$riskLevel", "High Risk"] }, 1, 0] } }
+      }}
+    ]);
+
+    const villageFollowUps = villageFollowUpsRaw.map(v => ({
+      name: v._id || 'Unknown',
+      count: v.count,
+      highRisk: v.highRisk
+    }));
+
+    // Overall Completion Rate
+    const totalFollowUps = await FollowUp.countDocuments({ workerId: req.userId });
+    const completedFollowUps = await FollowUp.countDocuments({ workerId: req.userId, status: 'Completed' });
+    const missedFollowUps = await FollowUp.countDocuments({ workerId: req.userId, status: 'Missed' });
+    const pendingFollowUps = await FollowUp.countDocuments({ workerId: req.userId, status: 'Pending' });
+    const completionRate = totalFollowUps > 0 ? ((completedFollowUps / totalFollowUps) * 100).toFixed(1) : 0;
 
     res.json({
       totalPatients,
       diseaseDistribution: diseases.length ? diseases : [{ name: 'Healthy', value: 1 }],
       weeklyScreenings,
-      followUpData
+      followUpData,
+      calendarStats: {
+        total: totalFollowUps,
+        completed: completedFollowUps,
+        missed: missedFollowUps,
+        pending: pendingFollowUps,
+        completionRate
+      },
+      villageFollowUps
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -76,11 +76,16 @@ const createScreening = async (req, res) => {
       
       const followUp = new FollowUp({
         patientId,
+        patientName: patient.name,
+        village: patient.village,
+        workerId: workerId,
         date: followUpDate,
+        time: "09:00",
         notes: finalResult.followUpRecommendation || 'Urgent AI Drift Detection Follow-up',
+        reason: 'Automated screening follow-up due to high risk/critical drift',
         priority: ['High Risk'].includes(finalResult.riskLevel) ? 'High' : 'Medium',
-        status: 'Pending',
-        type: 'Routine'
+        riskLevel: finalResult.riskLevel,
+        status: 'Pending'
       });
       await followUp.save();
       

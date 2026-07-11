@@ -9,7 +9,10 @@ export default function ScheduleFollowUp() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [priority, setPriority] = useState('High');
+  const [time, setTime] = useState('09:00');
+  const [priority, setPriority] = useState('Medium');
+  const [riskLevel, setRiskLevel] = useState('Medium Risk');
+  const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +39,10 @@ export default function ScheduleFollowUp() {
       await api.post('/followups', { 
         patientId: id, 
         date: new Date(date),
+        time,
         priority, 
+        riskLevel,
+        reason,
         notes 
       });
       toast.success('Follow-up scheduled successfully!');
@@ -62,31 +68,71 @@ export default function ScheduleFollowUp() {
 
       <div className="px-6 pt-6 max-w-7xl mx-auto w-full">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Select Date</label>
-            <div className="relative">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Select Date</label>
+              <div className="relative">
+                <input 
+                  type="date" 
+                  required 
+                  className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900 appearance-none" 
+                  value={date} 
+                  onChange={e => setDate(e.target.value)} 
+                />
+                <Calendar className="w-5 h-5 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Time (Optional)</label>
               <input 
-                type="date" 
-                required 
-                className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900 appearance-none" 
-                value={date} 
-                onChange={e => setDate(e.target.value)} 
+                type="time" 
+                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900" 
+                value={time} 
+                onChange={e => setTime(e.target.value)} 
               />
-              <Calendar className="w-5 h-5 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
           
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Risk Level</label>
+              <select 
+                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none bg-white text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary appearance-none"
+                value={riskLevel} 
+                onChange={e => setRiskLevel(e.target.value)}
+              >
+                <option value="Low Risk">Low Risk</option>
+                <option value="Medium Risk">Medium Risk</option>
+                <option value="High Risk">High Risk</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Priority</label>
+              <select 
+                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none bg-white text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary appearance-none"
+                value={priority} 
+                onChange={e => setPriority(e.target.value)}
+              >
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+              </select>
+            </div>
+          </div>
+
           <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Priority</label>
-            <select 
-              className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none bg-white text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary appearance-none"
-              value={priority} 
-              onChange={e => setPriority(e.target.value)}
-            >
-              <option>High</option>
-              <option>Medium</option>
-              <option>Low</option>
-            </select>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Reason for Follow-up</label>
+            <input 
+              type="text" 
+              required
+              className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900" 
+              value={reason} 
+              onChange={e => setReason(e.target.value)} 
+              placeholder="e.g. Routine Checkup, High Risk Review"
+            />
           </div>
 
           <div>
