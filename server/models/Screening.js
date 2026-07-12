@@ -56,6 +56,47 @@ const screeningSchema = new mongoose.Schema({
     previousData: Object,
     currentData: Object
   },
+  verification: {
+    version: {
+      type: String,
+      default: "1.0"
+    },
+    status: {
+      type: String,
+      enum: [
+        "READY_FOR_BLOCKCHAIN",
+        "PENDING",
+        "VERIFIED",
+        "FAILED"
+      ],
+      default: "READY_FOR_BLOCKCHAIN"
+    },
+    recordHash: {
+      type: String
+    },
+    payloadVersion: {
+      type: String,
+      default: "1.0"
+    },
+    generatedAt: {
+      type: Date
+    },
+    anchoredAt: {
+      type: Date,
+      default: null
+    },
+    txHash: {
+      type: String,
+      default: null
+    },
+    blockchainNetwork: {
+      type: String,
+      default: "Preprod"
+    },
+    verificationPayload: {
+      type: mongoose.Schema.Types.Mixed
+    }
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

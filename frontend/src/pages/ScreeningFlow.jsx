@@ -200,7 +200,14 @@ export default function ScreeningFlow() {
       if (res.data && res.data.result) {
         localStorage.removeItem(`screeningDraft:${id}`);
         toast.success(t('screening.successAnalysis'));
-        navigate(`/patients/${id}/result`, { state: { result: res.data.result } });
+        // Pass the screeningId and verification object to the result screen
+        navigate(`/patients/${id}/result`, { 
+          state: { 
+            result: res.data.result,
+            screeningId: res.data.screeningId,
+            verification: res.data.verification 
+          } 
+        });
       } else {
         toast.error(t('screening.errInvalidRes'));
         setLoading(false);

@@ -6,7 +6,7 @@ import api from '../api';
 import toast from 'react-hot-toast';
 import MobileHeader from '../components/MobileHeader';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { useTranslation } from 'react-i18next';
 
 export default function Reports() {
@@ -139,7 +139,7 @@ export default function Reports() {
       }
 
       if (tableData.length > 0) {
-        doc.autoTable({
+        autoTable(doc, {
           startY: currentY,
           head: [[t('reports.pdf.metricSymptom'), t('reports.pdf.recordedValue')]],
           body: tableData,

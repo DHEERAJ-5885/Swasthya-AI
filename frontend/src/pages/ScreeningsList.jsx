@@ -77,7 +77,13 @@ export default function ScreeningsList() {
               return (
                 <div 
                   key={screening._id} 
-                  onClick={() => navigate(`/patients/${screening.patientId?._id || screening.patientId}/result`, { state: { result: screening.result } })}
+                  onClick={() => navigate(`/patients/${screening.patientId?._id || screening.patientId}/result`, { 
+                    state: { 
+                      result: screening.result,
+                      screeningId: screening._id,
+                      verification: screening.verification
+                    } 
+                  })}
                   className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group"
                 >
                   <div className="flex justify-between items-start mb-4">

@@ -40,7 +40,7 @@ export default function BottomNav() {
           
           if (item.isFab) {
             return (
-              <div key={item.name} className="relative -top-6 flex flex-col items-center justify-center">
+              <div key={item.path} className="relative -top-6 flex flex-col items-center justify-center">
                 <button
                   onClick={() => navigate(item.path)}
                   className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/40 active:scale-95 transition-transform"
@@ -53,7 +53,7 @@ export default function BottomNav() {
 
           return (
             <button
-              key={item.name}
+              key={item.path}
               onClick={(e) => {
                 if (item.isAction) {
                   e.preventDefault();

@@ -38,6 +38,38 @@ const createScreening = async (req, res) => {
       result: finalResult
     });
     
+    // Generate Blockchain Verification Payload before saving
+    try {
+      const verificationService = require('../blockchain/services/verificationService');
+      const rawData = {
+        patientId: patientId,
+        screeningId: screening._id,
+        ashaWorkerId: workerId,
+        screeningTimestamp: screening.createdAt,
+        aiResultVersion: 'v1.0',
+        reportVersion: '1.0'
+      };
+
+      const verificationResult = verificationService.generateHash(rawData);
+      
+      if (verificationResult.success) {
+        screening.verification = {
+          version: "1.0",
+          status: "READY_FOR_BLOCKCHAIN",
+          recordHash: verificationResult.hash,
+          payloadVersion: "1.0",
+          generatedAt: new Date(),
+          blockchainNetwork: process.env.CARDANO_NETWORK || "Preprod",
+          verificationPayload: verificationResult.payload
+        };
+      } else {
+        console.warn('Verification hash generation failed. Proceeding without verification metadata.');
+      }
+    } catch (verifError) {
+      console.error('Error generating verification payload:', verifError.message);
+      // Non-blocking error: do not crash or abort the healthcare workflow
+    }
+    
     await screening.save();
 
     // 1. Create Patient Alert if High Risk or Critical Drift
@@ -102,7 +134,76 @@ const createScreening = async (req, res) => {
       }
     }
     
-    res.json({ success: true, result: finalResult, screeningId: screening._id });
+    // 3. Asynchronously submit to Cardano (fire-and-forget)
+    if (screening.verification && screening.verification.recordHash) {
+      // Enforce idempotency: prevent duplicate transaction if already pending, verified or txHash exists
+      if (!screening.verification.txHash && screening.verification.status !== 'VERIFIED') {
+        const cardanoService = require('../blockchain/services/cardanoService');
+        const screeningId = screening._id;
+        
+        // Fire and forget closure
+        (async () => {
+          try {
+            // Update status to PENDING before submission
+            await Screening.updateOne(
+              { _id: screeningId }, 
+              { $set: { "verification.status": "PENDING" } }
+            );
+
+            // Submit transaction
+            const result = await cardanoService.anchorHealthRecord(screening.verification.recordHash);
+            
+            if (result.success) {
+              // Update with returned txHash (still PENDING)
+              await Screening.updateOne(
+                { _id: screeningId }, 
+                { $set: { 
+                    "verification.txHash": result.txHash,
+                    "verification.blockchainNetwork": result.network || "Preprod",
+                    "verification.status": "PENDING"
+                  } 
+                }
+              );
+
+              // Wait for confirmation on-chain
+              const isConfirmed = await cardanoService.awaitTxConfirmation(result.txHash);
+              
+              if (isConfirmed) {
+                // Permanently verify
+                await Screening.updateOne(
+                  { _id: screeningId }, 
+                  { $set: { 
+                      "verification.status": "VERIFIED",
+                      "verification.anchoredAt": new Date()
+                    } 
+                  }
+                );
+              }
+            } else {
+              // Revert on failure
+              console.error('Cardano submission failed:', result.error);
+              await Screening.updateOne(
+                { _id: screeningId }, 
+                { $set: { "verification.status": "FAILED" } }
+              );
+            }
+          } catch (bgError) {
+            console.error('Background Cardano error:', bgError.message);
+            await Screening.updateOne(
+              { _id: screeningId }, 
+              { $set: { "verification.status": "FAILED" } }
+            ).catch(() => {});
+          }
+        })();
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      result: finalResult, 
+      screeningId: screening._id, 
+      verification: screening.verification 
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Analysis failed' });
@@ -134,8 +235,26 @@ const getAllScreenings = async (req, res) => {
   }
 };
 
+const getScreeningVerification = async (req, res) => {
+  try {
+    const screening = await Screening.findById(req.params.id);
+    if (!screening) {
+      return res.status(404).json({ error: 'Screening not found' });
+    }
+    // Optional: check if patient belongs to worker
+    const patient = await Patient.findOne({ _id: screening.patientId, worker: req.userId });
+    if (!patient) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    res.json({ verification: screening.verification });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch verification status' });
+  }
+};
+
 module.exports = {
   createScreening,
   getScreenings,
-  getAllScreenings
+  getAllScreenings,
+  getScreeningVerification
 };

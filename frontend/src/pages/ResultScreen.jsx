@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Activity, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import BlockchainVerificationCard from '../components/BlockchainVerificationCard';
 
 export default function ResultScreen() {
   const { t } = useTranslation();
@@ -10,6 +11,8 @@ export default function ResultScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const result = location.state?.result || null;
+  const verification = location.state?.verification || null;
+  const screeningId = location.state?.screeningId || null;
 
   if (!result) {
     return (
@@ -123,6 +126,17 @@ export default function ResultScreen() {
             </p>
           </div>
         </div>
+
+        {/* Blockchain Verification */}
+        {verification && screeningId && (
+          <div className="pt-2">
+            <h3 className="text-sm font-bold text-slate-900 mb-2 px-1">Blockchain Record</h3>
+            <BlockchainVerificationCard 
+              initialVerification={verification} 
+              screeningId={screeningId} 
+            />
+          </div>
+        )}
 
         {/* Bottom Actions */}
         <div className="pt-4 space-y-3">
