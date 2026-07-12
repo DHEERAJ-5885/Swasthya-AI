@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { 
   ArrowLeft, BellRing, Calendar, ShieldCheck, AlertTriangle, 
-  Loader2, PhoneCall, User, CheckCircle, Activity, HeartPulse, Clock 
+  Loader2, PhoneCall, User, CheckCircle, Activity, Clock 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
@@ -24,11 +24,11 @@ export default function AlertDetail() {
         setData(res.data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         toast.error(t('alerts.errLoadDetail'));
         navigate(-1);
       });
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
   const handleResolve = async () => {
     setResolving(true);
@@ -36,7 +36,7 @@ export default function AlertDetail() {
       await api.put(`/alerts/${id}/resolve`);
       toast.success(t('alerts.resolvedSuccess'));
       navigate(-1);
-    } catch (err) {
+    } catch {
       toast.error(t('alerts.errResolve'));
       setResolving(false);
     }
@@ -68,7 +68,7 @@ export default function AlertDetail() {
   }
 
   const { alert, patient, latestScreening, previousScreenings } = data;
-  const { icon: Icon, bg, color, dot } = getIconData(alert.type);
+  const { icon: Icon, bg, color } = getIconData(alert.type);
   
   // Format symptoms properly
   const formatSymptom = (key, val) => {
@@ -142,7 +142,7 @@ export default function AlertDetail() {
                 <h3 className="text-base font-bold text-slate-900">{patient.name}</h3>
                 <p className="text-xs text-slate-500 mb-1">{patient.age} {t('alerts.years')} • {patient.gender}</p>
                 <p className="text-xs text-slate-500 flex items-center gap-1">
-                  <span>ID: {patient.familyId || t('alerts.na')}</span>
+                  <span>{t('alerts.id')}: {patient.familyId || t('alerts.na')}</span>
                   <span>•</span>
                   <span>{patient.village}</span>
                 </p>

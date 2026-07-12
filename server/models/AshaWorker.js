@@ -11,6 +11,15 @@ const ashaWorkerSchema = new mongoose.Schema({
   assignedPatients: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Patient' }],
   profilePhoto: { type: String },
   language: { type: String, default: 'English', enum: ['English', 'Hindi', 'Telugu'] },
+  gender: { type: String, enum: ['Female', 'Male', 'Other', ''] },
+  dob: { type: Date },
+  address: { type: String },
+  assignedPHC: { type: String },
+  notifications: {
+    emergencyAlerts: { type: Boolean, default: true },
+    followUpReminders: { type: Boolean, default: true },
+    communityNotifications: { type: Boolean, default: true }
+  },
   stats: {
     totalPatients: { type: Number, default: 0 },
     highRiskPatients: { type: Number, default: 0 },

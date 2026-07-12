@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -56,6 +57,7 @@ export function AuthProvider({ children }) {
     setAuth,
     clearAuth,
     isAuthenticated: Boolean(token)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [token, worker]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

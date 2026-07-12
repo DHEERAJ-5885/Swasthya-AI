@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { MessageCircle, X, Send, BrainCircuit, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +17,7 @@ export default function AIAssistant() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPortalRoot(document.getElementById('app-shell'));
   }, []);
 
@@ -47,7 +48,7 @@ export default function AIAssistant() {
       }
 
       setMessages(prev => [...prev, { role: 'assistant', content: res.data.reply, isEmergency: res.data.isEmergency }]);
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble connecting right now. Please try again later." }]);
     }
     

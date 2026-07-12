@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, Users, Stethoscope, Bell, Activity, UsersRound as FamilyIcon, 
@@ -31,7 +31,7 @@ export default function DesktopSidebar() {
     { icon: Users, label: t('nav.patients'), path: '/patients' },
     { icon: Stethoscope, label: t('nav.screenings'), path: '/screenings' },
     { icon: Bell, label: t('nav.alerts'), path: '/alerts', badge: unreadCount > 0 ? unreadCount : null },
-    { icon: Calendar, label: 'Calendar', path: '/calendar' },
+    { icon: Calendar, label: t('nav.calendar'), path: '/calendar' },
     { icon: FamilyIcon, label: t('nav.familyInsights'), path: '/family-insights' },
     { icon: Activity, label: t('nav.communityRisk'), path: '/community-risk' },
     { icon: BarChart2, label: t('nav.analytics'), path: '/analytics' },
@@ -49,10 +49,10 @@ export default function DesktopSidebar() {
             <ShieldPlus className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Swasthya AI</h1>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">{t('nav.swasthyaAi')}</h1>
           </div>
         </div>
-        <p className="text-[10px] text-slate-500 font-semibold tracking-wide ml-12 -mt-2">AI for Rural Healthcare</p>
+        <p className="text-[10px] text-slate-500 font-semibold tracking-wide ml-12 -mt-2">{t('nav.tagline')}</p>
       </div>
 
       {/* Navigation */}
@@ -70,7 +70,7 @@ export default function DesktopSidebar() {
             }
           >
             <div className="flex items-center gap-3">
-              <item.icon className={`w-5 h-5 ${item.path === '/' && false ? 'fill-current' : ''}`} />
+              <item.icon className="w-5 h-5" />
               <span>{item.label}</span>
             </div>
             {item.badge && (
@@ -101,9 +101,9 @@ export default function DesktopSidebar() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-900 truncate">{worker.name || 'User'}</p>
-              <p className="text-[10px] text-slate-500 truncate font-medium">ASHA Worker</p>
-              <p className="text-[9px] text-slate-400 truncate">{worker.employeeId || 'ID-UNKNOWN'}</p>
+              <p className="text-sm font-bold text-slate-900 truncate">{worker.name || t('nav.user')}</p>
+              <p className="text-[10px] text-slate-500 truncate font-medium">{t('nav.ashaWorker')}</p>
+              <p className="text-[9px] text-slate-400 truncate">{worker.employeeId || t('nav.idUnknown')}</p>
             </div>
           </div>
           <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />

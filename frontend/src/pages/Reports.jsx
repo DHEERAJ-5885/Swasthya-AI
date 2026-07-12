@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
-import { Loader2, Search, Filter, Download, FileText, ChevronRight, CheckCircle, ShieldAlert, Activity } from 'lucide-react';
+import { Loader2, Search, Filter, Download, FileText, ShieldAlert, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api';
 import toast from 'react-hot-toast';
@@ -22,11 +22,11 @@ export default function Reports() {
         setReports(res.data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         toast.error(t('reports.errLoad'));
         setLoading(false);
       });
-  }, []);
+  }, [t]);
 
   const downloadPDF = (report) => {
     toast.success(t('reports.generatingPdf'));
@@ -47,19 +47,19 @@ export default function Reports() {
       
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text("Clinical Screening Report", 15, 28);
+      doc.text(t('reports.pdf.clinicalScreening'), 15, 28);
       
       // Report ID & Date (Right aligned in header)
       doc.setFontSize(10);
-      doc.text(`Report ID: #${(report.id || '').substring(0,8).toUpperCase()}`, pageWidth - 15, 20, { align: 'right' });
-      doc.text(`Date: ${report.date} ${report.time || ''}`, pageWidth - 15, 28, { align: 'right' });
+      doc.text(`${t('reports.pdf.reportId')}: #${(report.id || '').substring(0,8).toUpperCase()}`, pageWidth - 15, 20, { align: 'right' });
+      doc.text(`${t('reports.pdf.date')}: ${report.date} ${report.time || ''}`, pageWidth - 15, 28, { align: 'right' });
       
       // Section: Patient Information
       let currentY = 45;
       doc.setTextColor(79, 70, 229);
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("Patient Information", 15, currentY);
+      doc.text(t('reports.pdf.patientInfo'), 15, currentY);
       
       doc.setDrawColor(220, 220, 220);
       doc.line(15, currentY + 3, pageWidth - 15, currentY + 3);
@@ -72,22 +72,22 @@ export default function Reports() {
       const leftColX = 15;
       const rightColX = pageWidth / 2 + 10;
       
-      doc.text(`Patient Name: ${report.patientName}`, leftColX, currentY);
-      doc.text(`Patient ID: ${(report.patientId || 'N/A').toString().substring(0,8)}`, rightColX, currentY);
+      doc.text(`${t('reports.pdf.patientName')}: ${report.patientName}`, leftColX, currentY);
+      doc.text(`${t('reports.pdf.patientId')}: ${(report.patientId || t('reports.pdf.na')).toString().substring(0,8)}`, rightColX, currentY);
       currentY += 8;
       
-      doc.text(`Age: ${report.age || 'N/A'}`, leftColX, currentY);
-      doc.text(`Gender: ${report.gender || 'N/A'}`, rightColX, currentY);
+      doc.text(`${t('reports.pdf.age')}: ${report.age || t('reports.pdf.na')}`, leftColX, currentY);
+      doc.text(`${t('reports.pdf.gender')}: ${report.gender || t('reports.pdf.na')}`, rightColX, currentY);
       currentY += 8;
       
-      doc.text(`Village: ${report.village}`, leftColX, currentY);
+      doc.text(`${t('reports.pdf.village')}: ${report.village}`, leftColX, currentY);
       currentY += 12;
       
       // Section: Health Status
       doc.setTextColor(79, 70, 229);
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("Health Status & Assessment", 15, currentY);
+      doc.text(t('reports.pdf.healthStatus'), 15, currentY);
       doc.line(15, currentY + 3, pageWidth - 15, currentY + 3);
       currentY += 10;
       
@@ -99,12 +99,12 @@ export default function Reports() {
       if (report.riskLevel === 'High Risk') riskColor = [239, 68, 68]; // Red
       if (report.riskLevel === 'Medium Risk') riskColor = [249, 115, 22]; // Orange
       
-      doc.text(`Health Score:`, leftColX, currentY);
+      doc.text(`${t('reports.pdf.healthScore')}:`, leftColX, currentY);
       doc.setFont("helvetica", "bold");
-      doc.text(`${report.healthScore !== undefined ? report.healthScore : 'N/A'}/100`, leftColX + 25, currentY);
+      doc.text(`${report.healthScore !== undefined ? report.healthScore : t('reports.pdf.na')}/100`, leftColX + 25, currentY);
       
       doc.setFont("helvetica", "normal");
-      doc.text(`Risk Level:`, rightColX, currentY);
+      doc.text(`${t('reports.pdf.riskLevel')}:`, rightColX, currentY);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
       doc.text(`${report.riskLevel}`, rightColX + 22, currentY);
@@ -113,10 +113,10 @@ export default function Reports() {
       doc.setTextColor(50, 50, 50);
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("AI Risk Assessment:", 15, currentY);
+      doc.text(`${t('reports.pdf.aiRiskAssessment')}:`, 15, currentY);
       doc.setFont("helvetica", "normal");
       
-      const splitAssessment = doc.splitTextToSize(report.explanation || 'No assessment provided.', pageWidth - 30);
+      const splitAssessment = doc.splitTextToSize(report.explanation || t('reports.pdf.noAssessment'), pageWidth - 30);
       currentY += 6;
       doc.text(splitAssessment, 15, currentY);
       currentY += (splitAssessment.length * 5) + 6;
@@ -141,7 +141,7 @@ export default function Reports() {
       if (tableData.length > 0) {
         doc.autoTable({
           startY: currentY,
-          head: [['Metric / Symptom', 'Recorded Value']],
+          head: [[t('reports.pdf.metricSymptom'), t('reports.pdf.recordedValue')]],
           body: tableData,
           theme: 'grid',
           headStyles: { fillColor: [79, 70, 229] },
@@ -159,26 +159,26 @@ export default function Reports() {
       doc.setTextColor(79, 70, 229);
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("Action Plan", 15, currentY);
+      doc.text(t('reports.pdf.actionPlan'), 15, currentY);
       doc.line(15, currentY + 3, pageWidth - 15, currentY + 3);
       currentY += 10;
       
       doc.setTextColor(50, 50, 50);
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("AI Recommendations:", 15, currentY);
+      doc.text(`${t('reports.pdf.aiRecommendations')}:`, 15, currentY);
       doc.setFont("helvetica", "normal");
-      const splitRec = doc.splitTextToSize(report.recommendation || 'Follow up normally.', pageWidth - 30);
+      const splitRec = doc.splitTextToSize(report.recommendation || t('reports.pdf.followUpNormally'), pageWidth - 30);
       currentY += 6;
       doc.text(splitRec, 15, currentY);
       currentY += (splitRec.length * 5) + 4;
       
       doc.setFont("helvetica", "bold");
-      doc.text("Follow-up Schedule:", 15, currentY);
+      doc.text(`${t('reports.pdf.followUpSchedule')}:`, 15, currentY);
       doc.setFont("helvetica", "normal");
-      let followupText = "Follow-up in 1 month.";
-      if (report.riskLevel === 'High Risk') followupText = "Immediate follow-up required (within 24 hours).";
-      else if (report.riskLevel === 'Medium Risk') followupText = "Follow-up within 7 days.";
+      let followupText = t('reports.pdf.followUp1Month');
+      if (report.riskLevel === 'High Risk') followupText = t('reports.pdf.immediateFollowUp');
+      else if (report.riskLevel === 'Medium Risk') followupText = t('reports.pdf.followUp7Days');
       currentY += 6;
       doc.text(followupText, 15, currentY);
       currentY += 10;
@@ -186,9 +186,9 @@ export default function Reports() {
       if (report.riskLevel === 'High Risk') {
         doc.setTextColor(239, 68, 68);
         doc.setFont("helvetica", "bold");
-        doc.text("⚠️ EMERGENCY RECOMMENDATION:", 15, currentY);
+        doc.text(t('reports.pdf.emergencyRecommendation'), 15, currentY);
         doc.setFont("helvetica", "normal");
-        const emerg = doc.splitTextToSize("Patient shows high risk indicators. Immediate referral to the nearest Primary Health Centre (PHC) or hospital is strongly recommended. Please alert local medical authorities if necessary.", pageWidth - 30);
+        const emerg = doc.splitTextToSize(t('reports.pdf.emergencyText'), pageWidth - 30);
         currentY += 6;
         doc.text(emerg, 15, currentY);
       }
@@ -200,9 +200,9 @@ export default function Reports() {
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
         doc.setFont("helvetica", "italic");
-        doc.text("Generated by Swasthya AI", pageWidth / 2, 285, { align: 'center' });
-        doc.text(`Timestamp: ${report.timestamp || new Date().toLocaleString()}`, pageWidth / 2, 290, { align: 'center' });
-        doc.text(`Page ${i} of ${pageCount}`, pageWidth - 15, 290, { align: 'right' });
+        doc.text(t('reports.pdf.generatedBy'), pageWidth / 2, 285, { align: 'center' });
+        doc.text(`${t('reports.pdf.timestamp')}: ${report.timestamp || new Date().toLocaleString()}`, pageWidth / 2, 290, { align: 'center' });
+        doc.text(`${t('reports.pdf.page')} ${i} ${t('reports.pdf.of')} ${pageCount}`, pageWidth - 15, 290, { align: 'right' });
       }
 
       doc.save(`Swasthya_Report_${report.patientName.replace(/\s+/g, '_')}_${report.date.replace(/\//g, '-')}.pdf`);
@@ -210,7 +210,7 @@ export default function Reports() {
     } catch (e) {
       console.error(e);
       // Show the real error message to the user
-      toast.error(`Unable to generate PDF. ${e.message || 'Please try again.'}`);
+      toast.error(`${t('reports.pdf.unableToGeneratePdf')} ${e.message || t('reports.pdf.pleaseTryAgain')}`);
     }
   };
 

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, Mic, MicOff, Loader2, Sparkles, Activity, FileText, HeartPulse, Languages, ShieldAlert, Calendar } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Bot, Send, Mic, MicOff, Sparkles, Activity, FileText, HeartPulse, Languages, ShieldAlert, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
 import toast from 'react-hot-toast';
@@ -49,7 +49,7 @@ export default function AIAssistantPage() {
     const historyPayload = messages.slice(1).map(m => ({ sender: m.sender, text: m.text }));
 
     const userMsg = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       sender: 'user',
       text: textToSend,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -63,11 +63,11 @@ export default function AIAssistantPage() {
       const res = await api.post('/chat', { message: textToSend, history: historyPayload });
       
       if (res.data.isEmergency) {
-        toast.error('🚨 Emergency Alert Generated! High priority follow-up created.', { duration: 5000, icon: '🚨' });
+        toast.error(t('ai.emergencyAlertToast'), { duration: 5000, icon: '🚨' });
       }
 
       const aiMsg = {
-        id: Date.now() + 1,
+        id: crypto.randomUUID(),
         sender: 'ai',
         text: res.data.reply,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -199,7 +199,7 @@ export default function AIAssistantPage() {
                 <div className="flex flex-col">
                   {msg.isEmergency && (
                     <div className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1.5 rounded-md text-[10px] font-bold mb-2 w-max border border-red-100 ml-11">
-                      <ShieldAlert className="w-3.5 h-3.5" /> Emergency Alert
+                      <ShieldAlert className="w-3.5 h-3.5" /> {t('ai.emergencyAlert')}
                     </div>
                   )}
                   <div 

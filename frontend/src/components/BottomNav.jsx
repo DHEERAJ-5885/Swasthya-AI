@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Users, Plus, Bell, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +34,7 @@ export default function BottomNav() {
   return (
     <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-100 z-50 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.04)] rounded-t-[24px]">
       <div className="flex justify-around items-center h-[72px] px-2 relative">
-        {navItems.map((item, index) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || (item.path === '/patients' && location.pathname.startsWith('/patients') && location.pathname !== '/patients/add');
           

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 
 export default function ScheduleFollowUp() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('09:00');
   const [priority, setPriority] = useState('Medium');
@@ -21,7 +23,7 @@ export default function ScheduleFollowUp() {
     
     // Validation
     if (!date) {
-      toast.error('Please select a follow-up date');
+      toast.error(t('schedule.selectDateErr'));
       return;
     }
     
@@ -30,7 +32,7 @@ export default function ScheduleFollowUp() {
     today.setHours(0, 0, 0, 0);
     
     if (selectedDate < today) {
-      toast.error('Follow-up date must be in the future');
+      toast.error(t('schedule.dateFutureErr'));
       return;
     }
     
@@ -45,11 +47,11 @@ export default function ScheduleFollowUp() {
         reason,
         notes 
       });
-      toast.success('Follow-up scheduled successfully!');
+      toast.success(t('schedule.success'));
       navigate(`/patients/${id}`);
     } catch (err) {
       console.error(err);
-      const errorMsg = err.response?.data?.error || 'Failed to schedule follow-up.';
+      const errorMsg = err.response?.data?.error || t('schedule.error');
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -62,7 +64,7 @@ export default function ScheduleFollowUp() {
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-base font-semibold text-slate-900 absolute left-1/2 -translate-x-1/2">Schedule Follow-up</h1>
+        <h1 className="text-base font-semibold text-slate-900 absolute left-1/2 -translate-x-1/2">{t('schedule.title')}</h1>
         <div className="w-6"></div> {/* Spacer for centering */}
       </div>
 
@@ -70,7 +72,7 @@ export default function ScheduleFollowUp() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Select Date</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">{t('schedule.selectDate')}</label>
               <div className="relative">
                 <input 
                   type="date" 
@@ -84,7 +86,7 @@ export default function ScheduleFollowUp() {
             </div>
             
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Time (Optional)</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">{t('schedule.timeOptional')}</label>
               <input 
                 type="time" 
                 className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900" 
@@ -96,57 +98,57 @@ export default function ScheduleFollowUp() {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Risk Level</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">{t('schedule.riskLevel')}</label>
               <select 
                 className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none bg-white text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary appearance-none"
                 value={riskLevel} 
                 onChange={e => setRiskLevel(e.target.value)}
               >
-                <option value="Low Risk">Low Risk</option>
-                <option value="Medium Risk">Medium Risk</option>
-                <option value="High Risk">High Risk</option>
-                <option value="Critical">Critical</option>
+                <option value="Low Risk">{t('schedule.lowRisk')}</option>
+                <option value="Medium Risk">{t('schedule.mediumRisk')}</option>
+                <option value="High Risk">{t('schedule.highRisk')}</option>
+                <option value="Critical">{t('schedule.critical')}</option>
               </select>
             </div>
             
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Priority</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">{t('schedule.priority')}</label>
               <select 
                 className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none bg-white text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary appearance-none"
                 value={priority} 
                 onChange={e => setPriority(e.target.value)}
               >
-                <option>High</option>
-                <option>Medium</option>
-                <option>Low</option>
+                <option value="High">{t('schedule.high')}</option>
+                <option value="Medium">{t('schedule.medium')}</option>
+                <option value="Low">{t('schedule.low')}</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Reason for Follow-up</label>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">{t('schedule.reason')}</label>
             <input 
               type="text" 
               required
               className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900" 
               value={reason} 
               onChange={e => setReason(e.target.value)} 
-              placeholder="e.g. Routine Checkup, High Risk Review"
+              placeholder={t('schedule.reasonPlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Add Notes (Optional)</label>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">{t('schedule.notes')}</label>
             <textarea 
               className="w-full p-4 rounded-xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white text-slate-900 resize-none h-32" 
               value={notes} 
               onChange={e => setNotes(e.target.value)} 
-              placeholder="Enter notes..."
+              placeholder={t('schedule.notesPlaceholder')}
             />
           </div>
 
           <Button type="submit" className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/30 mt-8" disabled={loading}>
-            {loading ? 'Scheduling...' : 'Confirm Follow-up'}
+            {loading ? t('schedule.scheduling') : t('schedule.confirm')}
           </Button>
         </form>
       </div>

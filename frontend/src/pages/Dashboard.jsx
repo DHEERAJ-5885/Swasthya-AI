@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { 
   Users, ShieldAlert, Calendar, Plus, Stethoscope, Cloud, 
   Activity, BrainCircuit, ScanLine, Mic, UsersRound, PhoneCall, 
-  Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2,
+  Loader2, ArrowUpRight, ArrowDownRight, ArrowRight,
   Bell, Sparkles, ShieldPlus, AlertTriangle
 } from 'lucide-react';
-import NotificationPanel from '../components/NotificationPanel';
 import LanguageSelector from '../components/LanguageSelector';
+import EmergencyAssistanceModal from '../components/EmergencyAssistanceModal';
 import toast from 'react-hot-toast';
 import api from '../api';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +27,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-  const [triggeringEmergency, setTriggeringEmergency] = useState(false);
   const worker = JSON.parse(localStorage.getItem('worker') || '{"name":"ASHA Worker", "village":""}');
   const { t } = useTranslation();
 
@@ -65,18 +64,8 @@ export default function Dashboard() {
     );
   }
 
-  const handleEmergency = async () => {
-    setTriggeringEmergency(true);
-    try {
-      await api.post('/alerts/emergency', { village: worker.village });
-      toast.success('Emergency alert triggered successfully');
-      setShowEmergencyModal(false);
-      fetchStats(); // Update alerts instantly
-    } catch (err) {
-      toast.error('Failed to trigger emergency alert');
-    } finally {
-      setTriggeringEmergency(false);
-    }
+  const handleEmergencySaved = () => {
+    fetchStats();
   };
 
   const data = stats || { 
@@ -114,7 +103,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-4">
           <div className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-sm ${isOnline ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-            {isOnline ? 'SYNCED' : 'OFFLINE'}
+            {isOnline ? t('dashboard.synced') : t('dashboard.offline')}
           </div>
           <LanguageSelector showLabel={false} selectClassName="bg-white text-slate-800 border-slate-200 font-medium text-sm rounded-full px-3 py-1.5 shadow-sm" />
           <div className="relative">
@@ -160,14 +149,14 @@ export default function Dashboard() {
         
         <div className="relative p-6 md:p-10 flex flex-col justify-center text-white z-10 max-w-3xl mt-4 md:mt-0">
           <p className="text-sm md:text-base font-semibold text-white/90 mb-2 flex items-center gap-2">
-            Namaste, {worker.name || 'ASHA Worker'} <span className="text-xl">👋</span>
+            Namaste, {worker.name || t('dashboard.ashaWorker')} <span className="text-xl">👋</span>
           </p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight mb-4 tracking-tight shadow-sm text-white drop-shadow-md">
-            Empowering Health, <br className="hidden sm:block"/>
-            <span className="text-indigo-100 font-light drop-shadow-md">Transforming Lives</span>
+            {t('dashboard.heroTitle1')} <br className="hidden sm:block"/>
+            <span className="text-indigo-100 font-light drop-shadow-md">{t('dashboard.heroTitle2')}</span>
           </h1>
           <p className="text-xs md:text-sm font-bold text-white flex items-center gap-2 bg-black/30 w-fit px-4 py-2 rounded-full backdrop-blur-md shadow-inner border border-white/10">
-            <BrainCircuit className="w-4 h-4 text-emerald-400" /> AI-powered insights for a healthier community
+            <BrainCircuit className="w-4 h-4 text-emerald-400" /> {t('dashboard.heroSubtitle')}
           </p>
         </div>
 
@@ -176,8 +165,8 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 text-3xl font-black mb-1">
             <Cloud className="w-8 h-8 opacity-100 text-blue-200" /> 28°C
           </div>
-          <p className="font-bold text-white tracking-wide">{worker.village || 'Shadnagar'} Village</p>
-          <p className="text-xs text-white/80 font-medium">Tue, 20 May 2026</p>
+          <p className="font-bold text-white tracking-wide">{worker.village || 'Shadnagar'} {t('dashboard.village')}</p>
+          <p className="text-xs text-white/80 font-medium">{t('dashboard.demoDate')}</p>
         </div>
       </div>
       </div>
@@ -307,9 +296,9 @@ export default function Dashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-bold text-emerald-500 flex items-center justify-end gap-0.5">
-                      <ArrowUpRight className="w-3 h-3" /> Increasing
+                      <ArrowUpRight className="w-3 h-3" /> {t('dashboard.increasing')}
                     </p>
-                    <p className="text-[10px] text-slate-400 font-medium">vs last week</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{t('dashboard.vsLastWeek')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -328,8 +317,8 @@ export default function Dashboard() {
                 <div className="grid grid-cols-3 gap-4 flex-1 content-start">
                   <QuickActionButton icon={Plus} label={t('button.addPatient')} color="primary" onClick={() => navigate('/patients/add')} />
                   <QuickActionButton icon={Stethoscope} label={t('nav.screenings')} color="emerald" onClick={() => navigate('/screenings')} />
-                  <QuickActionButton icon={ScanLine} label="Scan Card" color="blue" onClick={() => navigate('/patients')} />
-                  <QuickActionButton icon={Mic} label="Voice" color="purple" onClick={() => navigate('/patients')} />
+                  <QuickActionButton icon={ScanLine} label={t('dashboard.scanCard')} color="blue" onClick={() => navigate('/patients')} />
+                  <QuickActionButton icon={Mic} label={t('dashboard.voice')} color="purple" onClick={() => navigate('/patients')} />
                   <QuickActionButton icon={PhoneCall} label={t('button.emergencyAlert')} color="red" onClick={() => setShowEmergencyModal(true)} />
                   <QuickActionButton icon={UsersRound} label={t('nav.familyInsights')} color="orange" onClick={() => navigate('/family-insights')} />
                 </div>
@@ -470,17 +459,17 @@ export default function Dashboard() {
               <CardContent className="p-0">
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-primary" /> Upcoming Follow-ups
+                    <Calendar className="w-4 h-4 text-primary" /> {t('dashboard.upcomingFollowUps')}
                   </h3>
                   <button onClick={() => navigate('/calendar')} className="text-xs font-bold text-primary hover:text-primary-dark flex items-center gap-1">
-                    View Calendar <ArrowRight className="w-3 h-3" />
+                    {t('dashboard.viewCalendar')} <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
                   {/* Today */}
                   <div className="p-6 bg-slate-50/50">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Today</h4>
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">{t('dashboard.today')}</h4>
                     <div className="space-y-3">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
@@ -491,20 +480,20 @@ export default function Dashboard() {
                           <p className="text-sm font-bold text-slate-900 truncate">{f.patientName}</p>
                           <p className="text-xs text-slate-500 font-medium truncate">{f.reason}</p>
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">{f.time || 'All Day'}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">{f.time || t('dashboard.allDay')}</span>
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${f.riskLevel === 'High Risk' ? 'bg-red-50 text-red-600' : f.riskLevel === 'Medium Risk' ? 'bg-orange-50 text-orange-600' : 'bg-emerald-50 text-emerald-600'}`}>{f.riskLevel}</span>
                           </div>
                         </div>
                       ))}
                       {(!data.upcomingFollowUps || data.upcomingFollowUps.filter(f => new Date(f.date).toDateString() === new Date().toDateString()).length === 0) && (
-                        <p className="text-xs text-slate-400 font-medium text-center py-4">No follow-ups today</p>
+                        <p className="text-xs text-slate-400 font-medium text-center py-4">{t('dashboard.noFollowUpsToday')}</p>
                       )}
                     </div>
                   </div>
 
                   {/* Tomorrow */}
                   <div className="p-6">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Tomorrow</h4>
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">{t('dashboard.tomorrow')}</h4>
                     <div className="space-y-3">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
@@ -521,14 +510,14 @@ export default function Dashboard() {
                         const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
                         return new Date(f.date).toDateString() === tomorrow.toDateString();
                       }).length === 0) && (
-                        <p className="text-xs text-slate-400 font-medium text-center py-4">No follow-ups tomorrow</p>
+                        <p className="text-xs text-slate-400 font-medium text-center py-4">{t('dashboard.noFollowUpsTomorrow')}</p>
                       )}
                     </div>
                   </div>
 
                   {/* Overdue */}
                   <div className="p-6">
-                    <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-4">Overdue</h4>
+                    <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-4">{t('dashboard.overdue')}</h4>
                     <div className="space-y-3">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
@@ -542,18 +531,17 @@ export default function Dashboard() {
                         </div>
                       ))}
                       {(!data.upcomingFollowUps || data.upcomingFollowUps.filter(f => new Date(f.date) < new Date(new Date().setHours(0,0,0,0))).length === 0) && (
-                        <p className="text-xs text-slate-400 font-medium text-center py-4">No overdue follow-ups</p>
+                        <p className="text-xs text-slate-400 font-medium text-center py-4">{t('dashboard.noOverdueFollowUps')}</p>
                       )}
                     </div>
                   </div>
 
                   {/* Next 7 Days */}
                   <div className="p-6">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Upcoming</h4>
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">{t('dashboard.upcoming')}</h4>
                     <div className="space-y-3">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
-                        const today = new Date();
                         const tomorrow = new Date();
                         tomorrow.setDate(tomorrow.getDate() + 1);
                         return d > tomorrow; // strictly after tomorrow
@@ -581,42 +569,11 @@ export default function Dashboard() {
       {/* Emergency Modal */}
       <AnimatePresence>
         {showEmergencyModal && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl relative overflow-hidden text-center"
-            >
-              <div className="absolute top-0 left-0 w-full h-2 bg-red-500"></div>
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 mt-2">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">{t('dashboard.triggerEmergency')}</h2>
-              <p className="text-sm text-slate-500 font-medium mb-6 px-4">
-                {t('dashboard.emergencyDesc')} {worker.village || 'your area'}.
-              </p>
-              
-              <div className="space-y-3">
-                <button 
-                  onClick={handleEmergency}
-                  disabled={triggeringEmergency}
-                  className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-70 shadow-lg shadow-red-500/30"
-                >
-                  {triggeringEmergency ? <Loader2 className="w-5 h-5 animate-spin" /> : <PhoneCall className="w-5 h-5" />}
-                  {triggeringEmergency ? t('dashboard.triggering') : t('dashboard.yesTriggerAlert')}
-                </button>
-                <button 
-                  onClick={() => setShowEmergencyModal(false)}
-                  disabled={triggeringEmergency}
-                  className="w-full h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors disabled:opacity-70"
-                >
-                  {t('form.cancel')}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+          <EmergencyAssistanceModal 
+            isOpen={showEmergencyModal} 
+            onClose={() => setShowEmergencyModal(false)}
+            onEmergencySaved={handleEmergencySaved}
+          />
         )}
       </AnimatePresence>
     </div>
@@ -626,6 +583,7 @@ export default function Dashboard() {
 // Subcomponents
 
 function MetricCard({ title, value, icon: Icon, trend, trendUp, color, chartData }) {
+  const { t } = useTranslation();
   const colorMap = {
     primary: 'text-primary bg-primary/10',
     red: 'text-red-500 bg-red-50',
@@ -660,7 +618,7 @@ function MetricCard({ title, value, icon: Icon, trend, trendUp, color, chartData
                 {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                 {trend}
               </div>
-              <span className="text-[9px] text-slate-400 font-medium">vs last month</span>
+              <span className="text-[9px] text-slate-400 font-medium">{t('dashboard.vsLastMonth')}</span>
             </div>
             
             {/* Sparkline */}
@@ -712,7 +670,7 @@ function QuickActionButton({ icon: Icon, label, color, onClick }) {
   );
 }
 
-function AlertItem({ id, icon: Icon, color, title, subtitle, time, onClick }) {
+function AlertItem({ icon: Icon, color, title, subtitle, time, onClick }) {
   const colorMap = {
     red: 'text-red-500 bg-red-50',
     orange: 'text-orange-500 bg-orange-50',

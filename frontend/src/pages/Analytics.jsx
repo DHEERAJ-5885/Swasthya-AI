@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Loader2, TrendingUp, Users, Activity, ChevronDown, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -15,7 +15,7 @@ export default function Analytics() {
   const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('7 Days');
+  const [timeRange] = useState(t('analytics.timeRange7Days', '7 Days'));
 
   useEffect(() => {
     api.get('/advanced')
@@ -23,11 +23,11 @@ export default function Analytics() {
         setData(res.data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         toast.error(t('analytics.errLoad'));
         setLoading(false);
       });
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (
@@ -60,7 +60,7 @@ export default function Analytics() {
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
-            {timeRange} <ChevronDown className="w-4 h-4 text-slate-400" />
+            {timeRange === '7 Days' ? t('analytics.timeRange7Days') : timeRange} <ChevronDown className="w-4 h-4 text-slate-400" />
           </button>
           <button className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md shadow-primary/20 transition-all">
             <Download className="w-4 h-4" /> {t('analytics.exportCsv')}

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { cn } from './Button';
 
 export function Card({ className, children, hoverable = false, ...props }) {

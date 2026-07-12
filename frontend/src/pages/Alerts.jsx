@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
 import { ArrowLeft, BellRing, Calendar, ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
@@ -35,15 +34,7 @@ export default function Alerts() {
     }
   };
 
-  const getSeverity = (type) => {
-    switch (type) {
-      case 'Emergency': return 'Critical';
-      case 'Outbreak': return 'High';
-      case 'Missed': return 'Medium';
-      case 'Insight': return 'Low';
-      default: return 'Low';
-    }
-  };
+
 
   const markAsRead = async (id) => {
     try {

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
@@ -51,15 +51,7 @@ export default function App() {
   );
 }
 
-function AuthScopedChrome() {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <HamburgerMenu /> : null;
-}
 
-function AuthScopedChromeAssistant() {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <AIAssistant /> : null;
-}
 
 function AppShell() {
   const { token, isAuthenticated } = useAuth();

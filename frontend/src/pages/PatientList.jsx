@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '../components/ui/Card';
+
 import { Search, Filter, ChevronRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
@@ -24,7 +24,7 @@ export default function PatientList() {
       toast.error(t('patients.failedLoad'));
       setLoading(false);
     });
-  }, []);
+  }, [t]);
 
   const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -88,7 +88,7 @@ export default function PatientList() {
             <div className="flex items-center gap-3 text-right">
               <div>
                 <p className={`text-[10px] font-bold ${riskColors[patient.risk] || 'text-slate-500'} mb-0.5`}>
-                  {patient.risk === 'High Risk' ? t('patients.highRisk') : patient.risk === 'Medium Risk' ? t('patients.mediumRisk') : patient.risk === 'Low Risk' ? t('patients.lowRisk') : `${patient.risk || 'Unknown'} ${t('patients.risk')}`}
+                  {patient.risk === 'High Risk' ? t('patients.highRisk') : patient.risk === 'Medium Risk' ? t('patients.mediumRisk') : patient.risk === 'Low Risk' ? t('patients.lowRisk') : `${patient.risk || t('patients.unknown')} ${t('patients.risk')}`}
                 </p>
                 <p className="text-[10px] text-slate-400 font-medium">{patient.date}</p>
               </div>

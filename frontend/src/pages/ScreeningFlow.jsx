@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { ArrowLeft, Mic, MicOff, BrainCircuit } from 'lucide-react';
+import { Mic, MicOff, BrainCircuit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
@@ -67,15 +67,40 @@ export default function ScreeningFlow() {
   const steps = getSteps(t);
   const { id } = useParams();
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    sleep: 'Good', appetite: 'Normal', energy: 'Medium',
-    stress: 'Low', fever: 'None', bp: 'Normal',
-    voiceNotes: '',
-    scanImage: ''
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem(`screeningDraft:${id}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.currentStep === 'number') return parsed.currentStep;
+      } catch (err) {
+        console.error('Failed to load draft currentStep', err);
+      }
+    }
+    return 0;
   });
+  
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem(`screeningDraft:${id}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.formData) return parsed.formData;
+      } catch (err) {
+        console.error('Failed to load draft formData', err);
+      }
+    }
+    return {
+      sleep: 'Good', appetite: 'Normal', energy: 'Medium',
+      stress: 'Low', fever: 'None', bp: 'Normal',
+      voiceNotes: '',
+      scanImage: ''
+    };
+  });
+  
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const isApiSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   const [previousScreening, setPreviousScreening] = useState(null);
   const recognitionRef = useRef(null);
   const scanInputRef = useRef(null);
@@ -112,20 +137,7 @@ export default function ScreeningFlow() {
     return () => {
       if (recognitionRef.current) recognitionRef.current.stop();
     };
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(`screeningDraft:${id}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.formData) setFormData(parsed.formData);
-        if (typeof parsed.currentStep === 'number') setCurrentStep(parsed.currentStep);
-      } catch (err) {
-        console.error('Failed to load draft', err);
-      }
-    }
-  }, [id]);
+  }, [t]);
 
   useEffect(() => {
     localStorage.setItem(`screeningDraft:${id}`, JSON.stringify({ formData, currentStep }));
@@ -265,7 +277,7 @@ export default function ScreeningFlow() {
               <label className="block text-sm font-semibold text-slate-900 mb-3">{t('screening.liveTranscript')}</label>
               <textarea 
                 className="w-full h-40 p-4 rounded-2xl border border-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-slate-50 text-slate-900 resize-none shadow-inner"
-                placeholder={recognitionRef.current ? t('screening.speakNow') : t('screening.apiNotSupported')}
+                placeholder={isApiSupported ? t('screening.speakNow') : t('screening.apiNotSupported')}
                 value={formData.voiceNotes}
                 onChange={(e) => setFormData({...formData, voiceNotes: e.target.value})}
               ></textarea>
@@ -278,7 +290,7 @@ export default function ScreeningFlow() {
                   {t('screening.uploadScan')}
                 </Button>
                 {formData.scanImage && (
-                  <img src={formData.scanImage} alt="Scan" className="h-10 w-10 rounded-lg object-cover border border-slate-200" />
+                  <img src={formData.scanImage} alt={t('screening.scanAlt')} className="h-10 w-10 rounded-lg object-cover border border-slate-200" />
                 )}
               </div>
               <input

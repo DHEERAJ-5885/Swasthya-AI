@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+
 import { 
   ArrowLeft, BrainCircuit, Activity, ShieldAlert, Calendar, 
   Loader2, AlertTriangle, User, ChevronRight
@@ -27,11 +27,11 @@ export default function AIInsights() {
         setData(res.data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         toast.error(t('insights.errLoad'));
         setLoading(false);
       });
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (

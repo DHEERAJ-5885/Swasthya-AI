@@ -1,38 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Calendar, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import { useTranslation } from 'react-i18next';
 
 export default function FollowUpList() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [followUps, setFollowUps] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchFollowUps();
-  }, []);
-
-  const fetchFollowUps = async () => {
+  const fetchFollowUps = useCallback(async () => {
     try {
       const res = await api.get('/followups');
       setFollowUps(res.data);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to load follow-ups.');
+      toast.error(t('list.failedLoad'));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchFollowUps();
+  }, [fetchFollowUps]);
 
   const handleComplete = async (id) => {
     try {
       await api.put(`/followups/${id}/complete`);
-      toast.success('Follow-up marked as completed!');
+      toast.success(t('list.markedCompleted'));
       fetchFollowUps();
     } catch (err) {
       console.error(err);
-      toast.error('Failed to complete follow-up.');
+      toast.error(t('list.failedComplete'));
     }
   };
 
@@ -42,7 +45,7 @@ export default function FollowUpList() {
         <button onClick={() => navigate(-1)} className="text-slate-800">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-base font-semibold text-slate-900 absolute left-1/2 -translate-x-1/2">Pending Follow-ups</h1>
+        <h1 className="text-base font-semibold text-slate-900 absolute left-1/2 -translate-x-1/2">{t('list.pendingFollowUps')}</h1>
         <div className="w-6"></div>
       </div>
 
@@ -52,7 +55,7 @@ export default function FollowUpList() {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : followUps.length === 0 ? (
-          <div className="text-center py-10 text-slate-500 text-sm font-medium">No pending follow-ups.</div>
+          <div className="text-center py-10 text-slate-500 text-sm font-medium">{t('list.noPending')}</div>
         ) : (
           followUps.map(f => (
             <div key={f._id} className="bg-white rounded-2xl p-4 shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center justify-between">
@@ -61,9 +64,9 @@ export default function FollowUpList() {
                   <Calendar className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">{f.patientId?.name || 'Unknown Patient'}</h3>
+                  <h3 className="text-sm font-bold text-slate-900">{f.patientId?.name || t('list.unknownPatient')}</h3>
                   <p className="text-xs text-slate-500 mb-1">{new Date(f.date).toLocaleDateString()}</p>
-                  <p className={`text-[10px] font-bold ${f.priority === 'High' ? 'text-red-500' : 'text-orange-500'}`}>{f.priority} Priority</p>
+                  <p className={`text-[10px] font-bold ${f.priority === 'High' ? 'text-red-500' : 'text-orange-500'}`}>{f.priority} {t('list.priority')}</p>
                 </div>
               </div>
               <button 

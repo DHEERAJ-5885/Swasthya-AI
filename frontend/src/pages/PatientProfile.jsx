@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { ArrowLeft, MoreVertical, TrendingUp, TrendingDown, Minus, Loader2, QrCode } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, Loader2, QrCode, AlertTriangle } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import toast from 'react-hot-toast';
 import api from '../api';
@@ -16,6 +16,7 @@ export default function PatientProfile() {
   const [patient, setPatient] = useState(null);
   const [screenings, setScreenings] = useState([]);
   const [followUps, setFollowUps] = useState([]);
+  const [emergencies, setEmergencies] = useState([]);
   const [familyData, setFamilyData] = useState(null);
   const [activeTab, setActiveTab] = useState('AI Insights');
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,14 @@ export default function PatientProfile() {
           setFollowUps([]);
         }
 
+        try {
+          const emergencyRes = await api.get(`/emergency/patient/${id}`);
+          setEmergencies(emergencyRes.data);
+        } catch (err) {
+          console.error('Failed to fetch emergencies', err);
+          setEmergencies([]);
+        }
+
         if (patientRes.data.familyId) {
           try {
             const familyRes = await api.get(`/family/${patientRes.data.familyId}`);
@@ -59,7 +68,7 @@ export default function PatientProfile() {
         }
       } catch (err) {
         console.error('Failed to fetch patient data', err);
-        toast.error('Failed to load patient data');
+        toast.error(t('profile.failedToLoadData'));
         navigate('/patients');
       } finally {
         setLoading(false);
@@ -67,7 +76,7 @@ export default function PatientProfile() {
     };
 
     fetchData();
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
   if (loading) {
     return (
@@ -128,23 +137,35 @@ export default function PatientProfile() {
   const riskClass = driftDirection === 'increased' ? 'text-red-500' : (driftDirection === 'decreased' ? 'text-green-500' : 'text-slate-500');
 
   const handleDeletePatient = async () => {
-    const confirmed = window.confirm(`Delete patient ${patient.name}? This action cannot be undone.`);
+    const confirmed = window.confirm(t('profile.confirmDelete', { name: patient.name }));
     if (!confirmed) return;
 
     setDeletingPatient(true);
     try {
       await api.delete(`/patients/${id}`);
-      toast.success('Patient deleted successfully');
+      toast.success(t('profile.patientDeleted'));
       navigate('/patients');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to delete patient');
+      toast.error(err.response?.data?.error || t('profile.deleteFailed'));
     } finally {
       setDeletingPatient(false);
     }
   };
 
+  const handleUpdateEmergencyStatus = async (emergencyId, newStatus) => {
+    try {
+      await api.put(`/emergency/${emergencyId}/status`, { status: newStatus });
+      toast.success(`Emergency marked as ${newStatus}`);
+      // Refresh emergencies
+      const res = await api.get(`/emergency/patient/${id}`);
+      setEmergencies(res.data);
+    } catch (err) {
+      toast.error('Failed to update emergency status');
+    }
+  };
+
   const renderDynamicChart = () => {
-    if (!screeningPoints || screeningPoints.length === 0) return <div className="text-center text-xs text-slate-400 py-10">No data available</div>;
+    if (!screeningPoints || screeningPoints.length === 0) return <div className="text-center text-xs text-slate-400 py-10">{t('profile.noDataAvailable')}</div>;
     
     const maxW = 300;
     const maxH = 100;
@@ -225,6 +246,31 @@ export default function PatientProfile() {
       </div>
 
       <div className="px-6 space-y-4 max-w-7xl mx-auto w-full">
+        {emergencies.filter(e => e.status === 'Active' || e.status === 'Under Observation').map(emergency => (
+          <div key={emergency._id} className="bg-red-50 border border-red-200 p-4 rounded-2xl flex flex-col gap-3 shadow-sm">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-red-900 font-bold flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-600" /> 
+                  Active Emergency: {emergency.emergencyType}
+                </h3>
+                <p className="text-red-700 text-sm mt-1">Called: {emergency.emergencyContactCalled} ({emergency.emergencyNumber})</p>
+                <p className="text-red-600/80 text-xs mt-1">Logged on {new Date(emergency.createdAt).toLocaleString()}</p>
+              </div>
+              <div className="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded-md">
+                {emergency.status}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => handleUpdateEmergencyStatus(emergency._id, 'Resolved')}
+                className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs py-2 px-3 rounded-lg transition-colors"
+              >
+                Mark Resolved
+              </button>
+            </div>
+          </div>
+        ))}
         {/* Profile Info Header */}
         <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100">
           {patient.photoUrl ? (
@@ -397,7 +443,7 @@ export default function PatientProfile() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold text-slate-900">{t('profile.followups')}</p>
-                  <Button onClick={() => navigate(`/patients/${id}/schedule-follow-up`)} variant="outline" className="h-6 text-[10px] px-2 py-0 border-primary text-primary">Schedule</Button>
+                  <Button onClick={() => navigate(`/patients/${id}/schedule-follow-up`)} variant="outline" className="h-6 text-[10px] px-2 py-0 border-primary text-primary">{t('profile.schedule')}</Button>
                 </div>
                 {followUps.length === 0 ? (
                   <p className="text-[10px] text-slate-500">{t('profile.noFollowups')}</p>
@@ -409,7 +455,7 @@ export default function PatientProfile() {
                         <span className={`px-2 py-0.5 rounded-md font-bold ${f.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' : f.status === 'Missed' ? 'bg-slate-100 text-slate-500' : 'bg-orange-50 text-orange-600'}`}>{f.status}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="truncate pr-2">{f.reason || f.notes || 'Routine follow-up'}</span>
+                        <span className="truncate pr-2">{f.reason || f.notes || t('profile.routineFollowUp')}</span>
                         <span className={`shrink-0 font-bold ${f.riskLevel === 'High Risk' || f.riskLevel === 'Critical' ? 'text-red-500' : 'text-slate-400'}`}>{f.riskLevel}</span>
                       </div>
                     </div>
@@ -439,9 +485,9 @@ export default function PatientProfile() {
                       const res = await api.post(`/patients/${id}/observations`, { note: noteInput });
                       setPatient((prev) => ({ ...prev, observations: res.data }));
                       setNoteInput('');
-                      toast.success('Observation saved');
+                      toast.success(t('profile.observationSaved'));
                     } catch (err) {
-                      toast.error(err.response?.data?.error || 'Failed to save observation');
+                      toast.error(err.response?.data?.error || t('profile.observationFailed'));
                     } finally {
                       setSavingNote(false);
                     }
@@ -478,7 +524,7 @@ export default function PatientProfile() {
               {t('profile.startScreening')}
             </Button>
             <Button className="flex-1 h-12 text-sm font-semibold bg-white text-primary border border-primary shadow-sm rounded-xl hover:bg-primary/5" onClick={() => navigate(`/patients/${id}/schedule-follow-up`)}>
-              Schedule Follow-up
+              {t('profile.scheduleFollowUp')}
             </Button>
           </div>
           <Button

@@ -163,8 +163,9 @@ const getProfile = async (req, res) => {
 // Update worker profile
 const updateProfile = async (req, res) => {
   try {
-    const { name, email, language, profilePhoto, phone, village, password } = req.body;
-    const updateData = { name, email, language, profilePhoto, phone, village };
+    const { name, email, language, profilePhoto, phone, village, password, gender, dob, address, notifications } = req.body;
+    const updateData = { name, email, language, profilePhoto, phone, village, gender, dob, address };
+    if (notifications) updateData.notifications = notifications;
     
     if (phone && !/^\d{10}$/.test(phone)) {
       return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });

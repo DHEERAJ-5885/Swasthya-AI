@@ -15,6 +15,7 @@ const communityRoutes = require('./routes/communityRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const emergencyRoutes = require('./routes/emergencyRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +39,7 @@ app.use('/api/community-risk', authMiddleware, communityRoutes);
 app.use('/api/chat', authMiddleware, chatRoutes);
 app.use('/api/alerts', authMiddleware, alertRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/emergency', authMiddleware, emergencyRoutes);
 app.use('/api', analyticsRoutes);
 
 // Database connection with retry logic

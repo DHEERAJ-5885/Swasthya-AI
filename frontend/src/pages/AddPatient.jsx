@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, Mic, Camera, ScanLine } from 'lucide-react';
@@ -119,7 +119,7 @@ export default function AddPatient() {
 
           {formData.photoUrl && (
             <div className="flex items-center gap-4">
-              <img src={formData.photoUrl} alt="Patient" className="w-16 h-16 rounded-full object-cover border border-slate-200" />
+              <img src={formData.photoUrl} alt={t('form.patientPhoto')} className="w-16 h-16 rounded-full object-cover border border-slate-200" />
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, photoUrl: '' })}

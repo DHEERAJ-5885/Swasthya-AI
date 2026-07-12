@@ -11,6 +11,13 @@ const {
   getFollowUpsByPatient 
 } = require('../controllers/followUpController');
 
+router.use((req, res, next) => {
+  console.log(`[FOLLOWUPS ROUTE] ${req.method} ${req.originalUrl}`);
+  console.log('Query:', req.query);
+  console.log('Body:', req.body);
+  next();
+});
+
 router.post('/', authMiddleware, createFollowUp);
 router.get('/', authMiddleware, getFollowUps);
 router.get('/calendar', authMiddleware, getAllCalendarFollowUps);

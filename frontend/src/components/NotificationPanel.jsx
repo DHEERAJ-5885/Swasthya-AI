@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Bell, X, CheckCheck, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,37 +29,33 @@ export default function NotificationPanel() {
   const [portalRoot, setPortalRoot] = useState(null);
   const { language } = useLanguage();
 
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await api.get('/notifications/unread-count');
+      setUnreadCount(res.data.count);
+    } catch {
+      console.error('Failed to fetch unread count');
+    }
+  };
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPortalRoot(document.getElementById('app-shell'));
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
-  const fetchUnreadCount = async () => {
-    try {
-      const res = await api.get('/notifications/unread-count');
-      setUnreadCount(res.data.count);
-    } catch (err) {
-      console.error('Failed to fetch unread count:', err);
-    }
-  };
-
   const fetchNotifications = async () => {
     setLoading(true);
     try {
       const res = await api.get('/notifications');
       setNotifications(res.data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to fetch notifications');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleOpenPanel = () => {
-    setIsOpen(true);
-    fetchNotifications();
   };
 
   const handleMarkAsRead = async (notificationId) => {
@@ -70,7 +66,7 @@ export default function NotificationPanel() {
       ));
       fetchUnreadCount();
       toast.success('Marked as read');
-    } catch (err) {
+    } catch {
       toast.error('Failed to mark as read');
     }
   };
@@ -81,7 +77,7 @@ export default function NotificationPanel() {
       setNotifications(notifications.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
       toast.success('All marked as read');
-    } catch (err) {
+    } catch {
       toast.error('Failed to mark all as read');
     }
   };
@@ -92,7 +88,7 @@ export default function NotificationPanel() {
       setNotifications(notifications.filter(n => n._id !== notificationId));
       fetchUnreadCount();
       toast.success('Notification deleted');
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete notification');
     }
   };

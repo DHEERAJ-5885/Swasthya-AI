@@ -103,7 +103,7 @@ const getAllCalendarFollowUps = async (req, res) => {
     if (req.query.start && req.query.end) {
       query.date = { $gte: new Date(req.query.start), $lte: new Date(req.query.end) };
     }
-    const followUps = await FollowUp.find(query).populate('patientId').sort({ date: 1 });
+    const followUps = await FollowUp.find(query).populate('patientId').populate('workerId').sort({ date: 1 });
     res.json(followUps);
   } catch (err) {
     res.status(500).json({ error: err.message });

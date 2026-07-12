@@ -87,6 +87,7 @@ export default function Login() {
     mode: 'onTouched'
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchPassword = watch('password');
   
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ export default function Login() {
         toast.error(t('auth.googleFail'));
       }
     }
-  }, [navigate, setAuth]);
+  }, [navigate, setAuth, t]);
 
   useEffect(() => {
     clearErrors();
@@ -151,7 +152,7 @@ export default function Login() {
         navigate('/');
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || `${mode === 'login' ? 'Login' : 'Registration'} failed`);
+      toast.error(err.response?.data?.error || (mode === 'login' ? t('auth.loginFailed') : t('auth.registerFailed')));
     } finally {
       setLoading(false);
     }
@@ -314,7 +315,7 @@ export default function Login() {
                       <InputField 
                         label={t('auth.fullName')} 
                         icon={UsersRound} 
-                        placeholder="Anita Kumari"
+                        placeholder={t('auth.placeholderName')}
                         error={errors.name}
                         {...register("name", { required: t('auth.nameReq') })}
                       />
@@ -324,7 +325,7 @@ export default function Login() {
                   <InputField 
                     label={t('auth.employeeId')} 
                     icon={IdCard} 
-                    placeholder="ASH-001"
+                    placeholder={t('auth.placeholderEmpId')}
                     error={errors.employeeId}
                     {...register("employeeId", { required: t('auth.empIdReq') })}
                   />
@@ -333,7 +334,7 @@ export default function Login() {
                     label={t('auth.phoneNum')} 
                     icon={Phone} 
                     type="tel"
-                    placeholder="9876543210"
+                    placeholder={t('auth.placeholderPhone')}
                     error={errors.phone}
                     {...register("phone", { 
                       required: t('auth.phoneReq'),
@@ -352,14 +353,14 @@ export default function Login() {
                       <InputField 
                         label={t('auth.village')} 
                         icon={MapPin} 
-                        placeholder="Rampur"
+                        placeholder={t('auth.placeholderVillage')}
                         error={errors.village}
                         {...register("village", { required: t('auth.villageReq') })}
                       />
                       <InputField 
                         label={t('auth.district')} 
                         icon={Building2} 
-                        placeholder="Patna"
+                        placeholder={t('auth.placeholderDistrict')}
                         error={errors.district}
                         {...register("district", { required: t('auth.districtReq') })}
                       />
@@ -371,7 +372,7 @@ export default function Login() {
                       label={t('auth.email')} 
                       icon={Mail} 
                       type="email"
-                      placeholder="anita@example.com"
+                      placeholder={t('auth.placeholderEmail')}
                       error={errors.email}
                       {...register("email", {
                         pattern: {
@@ -385,7 +386,7 @@ export default function Login() {
                   <PasswordField 
                     label={t('auth.password')} 
                     icon={LockKeyhole} 
-                    placeholder="••••••••"
+                    placeholder={t('auth.placeholderPassword')}
                     error={errors.password}
                     {...register("password", { 
                       required: t('auth.passReq'),
@@ -397,7 +398,7 @@ export default function Login() {
                     <PasswordField 
                       label={t('auth.confirmPassword')} 
                       icon={LockKeyhole} 
-                      placeholder="••••••••"
+                      placeholder={t('auth.placeholderPassword')}
                       error={errors.confirmPassword}
                       {...register("confirmPassword", { 
                         required: t('auth.passConfirmReq'),

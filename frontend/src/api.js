@@ -1,5 +1,5 @@
 import axios from 'axios';
-import toast from 'react-hot-toast';
+
 
 const normalizeApiBaseUrl = (url) => {
   const trimmed = (url || '').replace(/\/$/, '');
@@ -39,6 +39,8 @@ api.interceptors.response.use(
       window.location.href = '/login';
     } else if (error.response?.status === 500) {
       console.error('Server error:', error.response?.data);
+    } else if (error.response?.status === 400) {
+      console.error('Bad Request (400):', JSON.stringify(error.response?.data));
     }
     return Promise.reject(error);
   }

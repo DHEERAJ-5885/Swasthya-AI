@@ -16,9 +16,8 @@ const followUpSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-followUpSchema.pre('save', function(next) {
+followUpSchema.pre('save', async function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 module.exports = mongoose.model('FollowUp', followUpSchema);
