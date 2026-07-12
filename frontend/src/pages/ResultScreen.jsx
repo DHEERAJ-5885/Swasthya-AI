@@ -52,6 +52,33 @@ export default function ResultScreen() {
       </div>
 
       <div className="px-6 pt-2 space-y-5 max-w-7xl mx-auto w-full">
+        {/* Cardano Verification Summary */}
+        {verification && verification.txHash && (
+          <div className="bg-white p-4 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-primary/20 flex flex-col items-center justify-center text-center">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center justify-center gap-2 mb-2">
+              <span className="text-lg">🟣</span> Verified by Cardano Blockchain
+            </h3>
+            <div className="flex items-center gap-4 text-xs text-slate-600">
+              <div className="flex flex-col items-center">
+                <span className="font-bold text-slate-400 uppercase text-[9px] tracking-wide">Status</span>
+                <span className="font-bold text-green-600">Verified</span>
+              </div>
+              <div className="w-[1px] h-6 bg-slate-100"></div>
+              <div className="flex flex-col items-center">
+                <span className="font-bold text-slate-400 uppercase text-[9px] tracking-wide">Timestamp</span>
+                <span className="font-semibold">{new Date(verification.anchoredAt || verification.generatedAt).toLocaleString()}</span>
+              </div>
+              <div className="w-[1px] h-6 bg-slate-100"></div>
+              <div className="flex flex-col items-center">
+                <span className="font-bold text-slate-400 uppercase text-[9px] tracking-wide">TxHash</span>
+                <span className="font-mono bg-slate-50 px-1 py-0.5 rounded border border-slate-100">
+                  {verification.txHash.substring(0,6)}...{verification.txHash.substring(verification.txHash.length - 4)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Risk Level & Confidence Headers */}
         <div className="flex justify-between items-end gap-3 bg-white p-4 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)]">
           <div className="flex-1 text-center">

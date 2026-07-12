@@ -4,6 +4,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, TrendingUp, TrendingDown, Minus, Loader2, QrCode, AlertTriangle } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
+import VerificationHistoryModal from '../components/VerificationHistoryModal';
 import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
@@ -21,6 +22,7 @@ export default function PatientProfile() {
   const [activeTab, setActiveTab] = useState('AI Insights');
   const [loading, setLoading] = useState(true);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [noteInput, setNoteInput] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const [deletingPatient, setDeletingPatient] = useState(false);
@@ -112,16 +114,16 @@ export default function PatientProfile() {
   const screeningPoints = screenings.map((s) => ({
     date: new Date(s.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
     risk: s.result?.riskLevel || t('profile.unknown'),
-    score: s.result?.confidence || 0,
+    score: s.result?.riskScore || 0,
     drift: s.result?.trendDirection || s.result?.trend || t('profile.stable'),
     result: s.result || {}
   }));
 
-  // Calculate dynamic drift message based on mock screenings
+  // Calculate dynamic drift message based on actual historical screenings
   const currentScore = screeningPoints[screeningPoints.length - 1]?.score || 0;
   const previousScore = screeningPoints[screeningPoints.length - 2]?.score || 0;
   
-  // Use AI drift direction if available, otherwise fallback to score math
+  // Use AI drift direction if available, otherwise fallback to risk score math
   const latestResult = screeningPoints[screeningPoints.length - 1]?.result || {};
   let driftDirection = 'stable';
   if (['Declining', 'Critical Drift'].includes(latestResult.trendDirection || latestResult.trend)) {
@@ -235,6 +237,14 @@ export default function PatientProfile() {
       {/* QR Code Modal */}
       <QRCodeModal patient={patient} isOpen={showQRModal} onClose={() => setShowQRModal(false)} />
       
+      {/* Verification History Modal */}
+      <VerificationHistoryModal 
+        isOpen={showVerificationModal} 
+        onClose={() => setShowVerificationModal(false)}
+        patient={patient}
+        screenings={screenings}
+      />
+      
       {/* Top App Bar (Desktop Only) */}
       <div className="hidden md:flex px-6 py-4 items-center justify-between sticky top-0 bg-slate-50 z-20">
         <button onClick={() => navigate('/patients')} className="text-slate-800">
@@ -308,6 +318,69 @@ export default function PatientProfile() {
           </div>
         </div>
 
+        {/* Blockchain Verification Summary Card */}
+        <div className="bg-white p-5 rounded-2xl shadow-[0_4px_12px_rgb(0,0,0,0.03)] border border-slate-100">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span className="text-lg">🟣</span> Blockchain Verification
+            </h3>
+          </div>
+          
+          {(() => {
+            const verified = screenings.filter(s => s.verification && s.verification.txHash);
+            if (verified.length === 0) {
+              return (
+                <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
+                  <p className="text-xs text-slate-500 font-medium">No blockchain verified healthcare records available.<br/><br/>Complete a screening to generate the first blockchain verification.</p>
+                </div>
+              );
+            }
+            
+            const latest = verified[verified.length - 1];
+            const shortHash = latest.verification.txHash ? `${latest.verification.txHash.substring(0,8)}...${latest.verification.txHash.substring(latest.verification.txHash.length - 7)}` : '';
+            
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Status</p>
+                    <p className="text-xs font-bold text-green-600 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-green-500"></span> Verified
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Network</p>
+                    <p className="text-xs font-bold text-slate-900">Cardano {latest.verification.blockchainNetwork}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Verified Records</p>
+                    <p className="text-xs font-bold text-slate-900">{verified.length}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Integrity</p>
+                    <p className="text-xs font-bold text-primary">Tamper-Proof</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Latest Verification</p>
+                    <p className="text-xs font-bold text-slate-900">{new Date(latest.verification.anchoredAt || latest.createdAt).toLocaleString()}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Latest Transaction</p>
+                    <p className="text-xs font-mono text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-100 w-max">{shortHash}</p>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => setShowVerificationModal(true)}
+                  className="w-full mt-2 py-2.5 bg-primary/5 hover:bg-primary/10 text-primary border border-primary/20 text-xs font-bold rounded-xl transition-colors"
+                >
+                  View Verification History
+                </button>
+              </div>
+            );
+          })()}
+        </div>
+
         {/* Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {tabs.map(tab => (
@@ -333,6 +406,12 @@ export default function PatientProfile() {
                       <div>
                         <p className="text-xs font-bold text-slate-900">{new Date(s.createdAt).toLocaleDateString()}</p>
                         <p className="text-[10px] text-slate-500">{t('patients.risk')}: {s.result?.riskLevel || t('profile.unknown')}</p>
+                        {s.verification && s.verification.txHash && (
+                          <div className="mt-1.5 flex items-center gap-1.5">
+                            <span className="text-[10px]">🟣</span>
+                            <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded-md">Verified by Cardano Blockchain</span>
+                          </div>
+                        )}
                       </div>
                       <span className="text-[10px] font-semibold text-slate-600">{s.result?.trendDirection || s.result?.trend || t('profile.stable')}</span>
                     </div>
