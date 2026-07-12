@@ -40,7 +40,7 @@ const createScreening = async (req, res) => {
     
     // Generate Blockchain Verification Payload before saving
     try {
-      const verificationService = require('../blockchain/services/verificationService');
+      const verificationService = require('../../SmartContract/services/verificationService');
       const rawData = {
         patientId: patientId,
         screeningId: screening._id,
@@ -138,7 +138,7 @@ const createScreening = async (req, res) => {
     if (screening.verification && screening.verification.recordHash) {
       // Enforce idempotency: prevent duplicate transaction if already pending, verified or txHash exists
       if (!screening.verification.txHash && screening.verification.status !== 'VERIFIED') {
-        const cardanoService = require('../blockchain/services/cardanoService');
+        const cardanoService = require('../../SmartContract/services/cardanoService');
         const screeningId = screening._id;
         
         // Fire and forget closure
