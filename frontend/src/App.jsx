@@ -1,4 +1,4 @@
-
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
@@ -57,10 +57,18 @@ import NetworkIndicator from './components/NetworkIndicator';
 import OfflineSyncCenter from './pages/OfflineSyncCenter';
 import ErrorBoundary from './components/ErrorBoundary';
 
+import { prefetchOfflineData } from './utils/syncEngine';
+
 function AppShell() {
   const { token, isAuthenticated } = useAuth();
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
+
+  useEffect(() => {
+    if (isAuthenticated && navigator.onLine) {
+      prefetchOfflineData();
+    }
+  }, [isAuthenticated]);
 
   return (
     <div 

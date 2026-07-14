@@ -1,5 +1,5 @@
 import api from '../api';
-import { getPendingTasks, updateTaskStatus, removeTask, addSyncHistory, getCachedPatients, cachePatients, cacheDashboardStats } from './offlineStore';
+import { getPendingTasks, updateTaskStatus, removeTask, addSyncHistory, getCachedPatients, cachePatients, cacheDashboardStats, deletePatientFromCache, deleteScreeningFromCache } from './offlineStore';
 import toast from 'react-hot-toast';
 import { encryptField, decryptField, decryptPatientData } from './cryptoUtils';
 
@@ -79,7 +79,7 @@ export const processSyncQueue = async () => {
           endpoint = '/follow-ups';
           break;
         case 'CREATE_EMERGENCY':
-          endpoint = '/emergency/alerts';
+          endpoint = '/emergency';
           break;
         default:
           throw new Error(`Unknown task type: ${task.type}`);
@@ -93,10 +93,13 @@ export const processSyncQueue = async () => {
         idMap.set(task.payload._id, realId);
         
         // Remove the offline mock patient from cache, and save the real one
-        const cached = await getCachedPatients();
-        const cleanedCache = cached.filter(p => p._id !== task.payload._id);
-        cleanedCache.push(response.data);
-        await cachePatients(cleanedCache);
+        await deletePatientFromCache(task.payload._id);
+        await cachePatients([response.data]);
+      }
+      
+      if (task.type === 'CREATE_SCREENING' && task.payload._id && task.payload._id.startsWith('offline_')) {
+        await deleteScreeningFromCache(task.payload._id);
+        // We will let the subsequent global prefetchOfflineData handle fetching the new real screening
       }
 
       await removeTask(task.id);
@@ -143,26 +146,33 @@ export const processSyncQueue = async () => {
 export const prefetchOfflineData = async () => {
   if (!navigator.onLine) return;
   try {
-    const [stats, patients, alerts, followups, communityRisk, analytics, insights] = await Promise.allSettled([
+    const [stats, patients, alerts, followups, communityRisk, analytics, insights, screenings, reports] = await Promise.allSettled([
       api.get('/dashboard/stats'),
       api.get('/patients'),
       api.get('/emergency/alerts'),
       api.get('/followups'),
       api.get('/community-risk'),
       api.get('/advanced'),
-      api.get('/insights')
+      api.get('/insights'),
+      api.get('/screenings/all'),
+      api.get('/reports')
     ]);
 
     if (stats.status === 'fulfilled') await cacheDashboardStats(stats.value.data);
     if (patients.status === 'fulfilled') await cachePatients(patients.value.data);
     
-    const { cacheAlerts, cacheFollowUps, cacheCommunityRisk, cacheAnalytics, cacheAIInsights } = await import('./offlineStore');
+    const { 
+      cacheAlerts, cacheFollowUps, cacheCommunityRisk, 
+      cacheAnalytics, cacheAIInsights, cacheScreenings, cacheReports 
+    } = await import('./offlineStore');
     
     if (alerts.status === 'fulfilled') await cacheAlerts(alerts.value.data);
     if (followups.status === 'fulfilled') await cacheFollowUps(followups.value.data);
     if (communityRisk.status === 'fulfilled') await cacheCommunityRisk(communityRisk.value.data);
     if (analytics.status === 'fulfilled') await cacheAnalytics(analytics.value.data);
     if (insights.status === 'fulfilled') await cacheAIInsights(insights.value.data);
+    if (screenings.status === 'fulfilled') await cacheScreenings(screenings.value.data);
+    if (reports.status === 'fulfilled') await cacheReports(reports.value.data);
     
   } catch (err) {
     console.warn('Background prefetch failed', err);

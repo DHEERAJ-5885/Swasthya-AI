@@ -153,10 +153,35 @@ export const cacheScreenings = async (screenings) => {
   await tx.done;
 };
 
+export const deletePatientFromCache = async (id) => {
+  if (!id) return;
+  try {
+    const db = await initDB();
+    await db.delete('patientsCache', id);
+  } catch (e) {
+    console.error('Failed to delete patient from cache', e);
+  }
+};
+
+export const deleteScreeningFromCache = async (id) => {
+  if (!id) return;
+  try {
+    const db = await initDB();
+    await db.delete('screeningsCache', id);
+  } catch (e) {
+    console.error('Failed to delete screening from cache', e);
+  }
+};
+
 export const getCachedScreeningsByPatient = async (patientId) => {
   const db = await initDB();
   const screenings = await db.getAll('screeningsCache');
   return screenings.filter(s => s.patientId === patientId || s.patient === patientId);
+};
+
+export const getCachedAllScreenings = async () => {
+  const db = await initDB();
+  return db.getAll('screeningsCache');
 };
 
 export const cacheAlerts = async (alerts) => {

@@ -14,16 +14,35 @@ export default function ScreeningsList() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    api.get('/screenings/all')
-      .then(res => {
-        setScreenings(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to fetch screenings', err);
-        setError(t('screeningsList.errLoad'));
+    if (navigator.onLine) {
+      api.get('/screenings/all')
+        .then(async res => {
+          setScreenings(res.data);
+          const { cacheScreenings } = await import('../utils/offlineStore');
+          await cacheScreenings(res.data);
+          setLoading(false);
+        })
+        .catch(async err => {
+          console.error('Failed to fetch screenings', err);
+          const { getCachedAllScreenings } = await import('../utils/offlineStore');
+          const cached = await getCachedAllScreenings();
+          if (cached && cached.length > 0) setScreenings(cached);
+          else setError(t('screeningsList.errLoad'));
+          setLoading(false);
+        });
+    } else {
+      import('../utils/offlineStore').then(async ({ getCachedAllScreenings }) => {
+        try {
+          const cached = await getCachedAllScreenings();
+          setScreenings(cached || []);
+          if (!cached || cached.length === 0) setError(t('screeningsList.errLoad'));
+        } catch (err) {
+          console.error(err);
+          setError(t('screeningsList.errLoad'));
+        }
         setLoading(false);
       });
+    }
   }, [t]);
 
   if (loading) {

@@ -16,8 +16,16 @@ export default function FamilyInsights() {
   useEffect(() => {
     const loadFamilies = async () => {
       try {
-        const res = await api.get('/patients');
-        const ids = Array.from(new Set(res.data.map(p => p.familyId).filter(Boolean)));
+        let patients = [];
+        if (navigator.onLine) {
+          const res = await api.get('/patients');
+          patients = res.data;
+        } else {
+          const { getCachedPatients } = await import('../utils/offlineStore');
+          patients = (await getCachedPatients()) || [];
+        }
+        
+        const ids = Array.from(new Set(patients.map(p => p.familyId).filter(Boolean)));
         setFamilyIds(ids);
         if (ids.length > 0) {
           setSelectedFamilyId(ids[0]);
@@ -39,8 +47,29 @@ export default function FamilyInsights() {
         return;
       }
       try {
-        const res = await api.get(`/family/${selectedFamilyId}`);
-        setFamilyData(res.data);
+        if (navigator.onLine) {
+          const res = await api.get(`/family/${selectedFamilyId}`);
+          setFamilyData(res.data);
+        } else {
+          // Generate mock family data from offline patients
+          const { getCachedPatients } = await import('../utils/offlineStore');
+          const patients = (await getCachedPatients()) || [];
+          const familyMembers = patients.filter(p => p.familyId === selectedFamilyId);
+          
+          if (familyMembers.length > 0) {
+            setFamilyData({
+              familyId: selectedFamilyId,
+              members: familyMembers,
+              riskLevel: familyMembers.some(m => m.riskLevel === 'High Risk') ? 'High' : 
+                         familyMembers.some(m => m.riskLevel === 'Medium Risk') ? 'Medium' : 'Low',
+              avgHealthScore: 80, // placeholder for offline
+              lastVisit: familyMembers[0].updatedAt || new Date().toISOString(),
+              insights: ['Offline mode: Showing cached family members.']
+            });
+          } else {
+            setFamilyData(null);
+          }
+        }
       } catch (err) {
         console.error(err);
         setFamilyData(null);

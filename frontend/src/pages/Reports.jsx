@@ -34,7 +34,10 @@ export default function Reports() {
         });
     } else {
       getCachedReports().then(cached => {
-        if (cached && cached.length > 0) setReports(cached);
+        setReports(cached || []);
+        setLoading(false);
+      }).catch(err => {
+        console.error('Failed to load cached reports:', err);
         setLoading(false);
       });
     }

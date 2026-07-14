@@ -4,6 +4,7 @@ import { ArrowLeft, BellRing, Calendar, ShieldCheck, AlertTriangle, Loader2 } fr
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 
 import { getCachedAlerts, cacheAlerts } from '../utils/offlineStore';
 
@@ -24,12 +25,12 @@ export default function Alerts() {
         .catch(async err => {
           console.error(err);
           const cached = await getCachedAlerts();
-          if (cached && cached.length > 0) setAlerts(cached);
+          setAlerts(cached || []);
           setLoading(false);
         });
     } else {
       getCachedAlerts().then(cached => {
-        if (cached && cached.length > 0) setAlerts(cached);
+        setAlerts(cached || []);
         setLoading(false);
       });
     }
@@ -45,14 +46,19 @@ export default function Alerts() {
     }
   };
 
-
-
   const markAsRead = async (id) => {
     try {
-      await api.put(`/alerts/${id}/read`);
-      setAlerts(prev => prev.map(a => a._id === id ? { ...a, read: true } : a));
+      if (navigator.onLine) {
+        await api.put(`/alerts/${id}/read`);
+      }
+      setAlerts(prev => {
+        const updated = prev.map(a => a._id === id ? { ...a, read: true } : a);
+        cacheAlerts(updated); // Update cache locally
+        return updated;
+      });
     } catch(err) {
       console.error(err);
+      toast.error('Failed to mark alert as read');
     }
   };
 

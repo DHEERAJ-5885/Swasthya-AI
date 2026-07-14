@@ -35,13 +35,16 @@ export default function PatientList() {
       });
     } else {
       getCachedPatients().then(cached => {
-        if (cached && cached.length > 0) setPatients(cached);
+        setPatients(cached || []);
+        setLoading(false);
+      }).catch(err => {
+        console.error('Failed to load cached patients:', err);
         setLoading(false);
       });
     }
   }, [t]);
 
-  const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = patients.filter(p => p && p.name && p.name.toLowerCase().includes(search.toLowerCase()));
 
   const riskColors = {
     'High Risk': 'text-red-500',
