@@ -25,17 +25,7 @@ export default function QRCodeModal({ patient, isOpen, onClose }) {
 
         setLatestScore(healthScore);
 
-        const payload = {
-          patientId: patient._id,
-          name: patient.name || '',
-          familyId: patient.familyId || '',
-          village: patient.village || '',
-          healthScore,
-          riskLevel,
-          scannedAt: new Date().toISOString()
-        };
-
-        const scanUrl = `${window.location.origin}/qr/patient?data=${encodeURIComponent(JSON.stringify(payload))}`;
+        const scanUrl = `${window.location.origin}/qr/patient?id=${patient._id}`;
 
         QRCode.toDataURL(scanUrl, {
           errorCorrectionLevel: 'H',
@@ -54,17 +44,8 @@ export default function QRCodeModal({ patient, isOpen, onClose }) {
       } catch (err) {
         console.error('Failed to load latest screening for QR code:', err);
         if (cancelled) return;
-        const payload = {
-          patientId: patient._id,
-          name: patient.name || '',
-          familyId: patient.familyId || '',
-          village: patient.village || '',
-          healthScore: null,
-          riskLevel: 'Unknown',
-          scannedAt: new Date().toISOString()
-        };
-
-        const scanUrl = `${window.location.origin}/qr/patient?data=${encodeURIComponent(JSON.stringify(payload))}`;
+        
+        const scanUrl = `${window.location.origin}/qr/patient?id=${patient._id}`;
 
         QRCode.toDataURL(scanUrl, {
           errorCorrectionLevel: 'H',

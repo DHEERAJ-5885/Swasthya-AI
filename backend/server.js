@@ -17,6 +17,8 @@ const alertRoutes = require('./routes/alertRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const emergencyRoutes = require('./routes/emergencyRoutes');
 
+const publicRoutes = require('./routes/publicRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -27,6 +29,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Public Routes (No Auth Required)
 app.use('/api/auth', authRoutes);
+app.use('/api/public', publicRoutes);
 
 // Protected Routes (Auth Required)
 app.use('/api/notifications', authMiddleware, notificationRoutes);
