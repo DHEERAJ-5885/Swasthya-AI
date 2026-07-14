@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   X, Home, Users, AlertCircle, Stethoscope, BrainCircuit, 
-  LogOut, User, Activity, UsersRound, BarChart2, FileText, MessageSquare, Calendar 
+  LogOut, User, Activity, UsersRound, BarChart2, FileText, MessageSquare, Calendar, RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -42,7 +42,8 @@ export default function HamburgerMenu() {
     { icon: Activity, label: t('nav.communityRisk'), path: '/community-risk' },
     { icon: BarChart2, label: t('nav.analytics'), path: '/analytics' },
     { icon: FileText, label: t('nav.reports'), path: '/reports' },
-    { icon: MessageSquare, label: t('nav.aiAssistant'), path: '/ai-assistant' }
+    { icon: MessageSquare, label: t('nav.aiAssistant'), path: '/ai-assistant' },
+    { icon: RefreshCw, label: 'Sync Center', path: '/sync-center' }
   ];
 
   const handleNavigation = (path) => {

@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
+import { useNetwork } from '../hooks/useNetwork';
+import { enqueueSyncTask } from '../utils/offlineStore';
 
 const getSteps = (t) => [
   { 
@@ -186,6 +188,8 @@ export default function ScreeningFlow() {
     }
   };
 
+  const { isOnline } = useNetwork();
+  
   const handleSubmit = async () => {
     setLoading(true);
     const worker = JSON.parse(localStorage.getItem('worker') || '{}');
@@ -195,6 +199,15 @@ export default function ScreeningFlow() {
       workerId: worker._id
     };
     
+    if (!isOnline) {
+      await enqueueSyncTask('CREATE_SCREENING', payload);
+      localStorage.removeItem(`screeningDraft:${id}`);
+      toast.success('Screening saved successfully. It will automatically synchronize when internet becomes available.');
+      navigate(`/patients/${id}`);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.post('/analyze', payload);
       if (res.data && res.data.result) {

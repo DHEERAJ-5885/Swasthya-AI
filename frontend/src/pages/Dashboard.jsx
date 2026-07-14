@@ -19,6 +19,8 @@ import {
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 
+import { getPendingTasks } from '../utils/offlineStore';
+
 // Data is now fetched from the backend API
 
 export default function Dashboard() {
@@ -27,19 +29,35 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [pendingSyncTasks, setPendingSyncTasks] = useState(0);
   const worker = JSON.parse(localStorage.getItem('worker') || '{"name":"ASHA Worker", "village":""}');
   const { t } = useTranslation();
 
   const fetchStats = () => {
-    api.get('/dashboard/stats')
-      .then(res => {
-        setStats(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load dashboard stats', err);
-        setLoading(false);
-      });
+    // If online, fetch from backend. If offline, try to load last cached stats from localStorage if we had one.
+    if (navigator.onLine) {
+      api.get('/dashboard/stats')
+        .then(res => {
+          setStats(res.data);
+          localStorage.setItem('dashboardStatsCache', JSON.stringify(res.data));
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Failed to load dashboard stats', err);
+          const cached = localStorage.getItem('dashboardStatsCache');
+          if (cached) setStats(JSON.parse(cached));
+          setLoading(false);
+        });
+    } else {
+      const cached = localStorage.getItem('dashboardStatsCache');
+      if (cached) setStats(JSON.parse(cached));
+      setLoading(false);
+    }
+  };
+
+  const fetchPendingTasks = async () => {
+    const tasks = await getPendingTasks();
+    setPendingSyncTasks(tasks.length);
   };
 
   useEffect(() => {
@@ -49,10 +67,16 @@ export default function Dashboard() {
     window.addEventListener('offline', handleOffline);
 
     fetchStats();
+    fetchPendingTasks();
+
+    const interval = setInterval(() => {
+      fetchPendingTasks();
+    }, 5000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
     };
   }, []);
 
@@ -101,13 +125,20 @@ export default function Dashboard() {
         </div>
         
         <div className="flex items-center gap-4">
-          <div className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-sm ${isOnline ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-            {isOnline ? t('dashboard.synced') : t('dashboard.offline')}
-          </div>
+          {pendingSyncTasks > 0 ? (
+            <button onClick={() => navigate('/sync-center')} className="px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-sm bg-orange-50 text-orange-600 border border-orange-100 animate-pulse hover:bg-orange-100 transition-colors">
+              <Cloud className="w-3.5 h-3.5" />
+              {pendingSyncTasks} Pending Sync
+            </button>
+          ) : (
+            <div className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-sm ${isOnline ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+              {isOnline ? 'Online & Synced' : t('dashboard.offline')}
+            </div>
+          )}
           <LanguageSelector showLabel={false} selectClassName="bg-white text-slate-800 border-slate-200 font-medium text-sm rounded-full px-3 py-1.5 shadow-sm" />
           <div className="relative">
-            <button className="p-2 bg-white rounded-full border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors">
+            <button onClick={() => navigate('/alerts')} className="p-2 bg-white rounded-full border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors">
               <Bell className="w-5 h-5 text-slate-600" />
             </button>
             <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
@@ -126,6 +157,14 @@ export default function Dashboard() {
           <span className="font-bold text-slate-900">Swasthya AI</span>
         </div>
         <div className="flex items-center gap-3">
+          {pendingSyncTasks > 0 && (
+            <button onClick={() => navigate('/sync-center')} className="relative p-1.5 text-orange-500">
+              <Cloud className="w-5 h-5" />
+              <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                {pendingSyncTasks}
+              </span>
+            </button>
+          )}
           <div className="relative">
             <button className="p-1.5">
               <Bell className="w-5 h-5 text-slate-600" />
@@ -470,7 +509,7 @@ export default function Dashboard() {
                   {/* Today */}
                   <div className="p-6 bg-slate-50/50">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">{t('dashboard.today')}</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
                         const today = new Date();
@@ -494,7 +533,7 @@ export default function Dashboard() {
                   {/* Tomorrow */}
                   <div className="p-6">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">{t('dashboard.tomorrow')}</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
                         const tomorrow = new Date();
@@ -518,7 +557,7 @@ export default function Dashboard() {
                   {/* Overdue */}
                   <div className="p-6">
                     <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-4">{t('dashboard.overdue')}</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
                         const today = new Date();
@@ -539,7 +578,7 @@ export default function Dashboard() {
                   {/* Next 7 Days */}
                   <div className="p-6">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">{t('dashboard.upcoming')}</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
                       {data.upcomingFollowUps?.filter(f => {
                         const d = new Date(f.date);
                         const tomorrow = new Date();

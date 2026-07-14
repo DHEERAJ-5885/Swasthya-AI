@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
+import { getCachedPatientById } from '../utils/offlineStore';
 
 export default function PatientProfile() {
   const { id } = useParams();
@@ -31,19 +32,36 @@ export default function PatientProfile() {
     const fetchData = async () => {
       try {
         // Fetch patient data
-        const patientRes = await api.get(`/patients/${id}`);
-        setPatient(patientRes.data);
+        let patientData = null;
+        try {
+          if (!navigator.onLine) throw new Error('Offline');
+          const patientRes = await api.get(`/patients/${id}`);
+          patientData = patientRes.data;
+        } catch (err) {
+          if (err.message !== 'Offline') console.error('Failed to fetch patient data', err);
+          patientData = await getCachedPatientById(id);
+        }
+
+        if (!patientData) {
+          toast.error(t('profile.failedToLoadData') || 'Failed to load offline data');
+          navigate('/patients');
+          return;
+        }
+        
+        setPatient(patientData);
 
         // Fetch historical screenings for the timeline
         try {
+          if (!navigator.onLine) throw new Error('Offline');
           const screeningsRes = await api.get(`/analyze/${id}`);
           setScreenings(screeningsRes.data);
         } catch (err) {
-          console.error('Failed to fetch screenings', err);
+          if (err.message !== 'Offline') console.error('Failed to fetch screenings', err);
           setScreenings([]);
         }
 
         try {
+          if (!navigator.onLine) throw new Error('Offline');
           const followUpsRes = await api.get(`/followups/patient/${id}`);
           setFollowUps(followUpsRes.data);
         } catch (err) {
@@ -52,6 +70,7 @@ export default function PatientProfile() {
         }
 
         try {
+          if (!navigator.onLine) throw new Error('Offline');
           const emergencyRes = await api.get(`/emergency/patient/${id}`);
           setEmergencies(emergencyRes.data);
         } catch (err) {
@@ -59,9 +78,10 @@ export default function PatientProfile() {
           setEmergencies([]);
         }
 
-        if (patientRes.data.familyId) {
+        if (patientData.familyId) {
           try {
-            const familyRes = await api.get(`/family/${patientRes.data.familyId}`);
+            if (!navigator.onLine) throw new Error('Offline');
+            const familyRes = await api.get(`/family/${patientData.familyId}`);
             setFamilyData(familyRes.data);
           } catch (err) {
             console.error('Failed to fetch family data', err);
@@ -69,7 +89,7 @@ export default function PatientProfile() {
           }
         }
       } catch (err) {
-        console.error('Failed to fetch patient data', err);
+        console.error('Unhandled profile error', err);
         toast.error(t('profile.failedToLoadData'));
         navigate('/patients');
       } finally {

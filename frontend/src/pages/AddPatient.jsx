@@ -6,9 +6,12 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
+import { useNetwork } from '../hooks/useNetwork';
+import { enqueueSyncTask } from '../utils/offlineStore';
 
 export default function AddPatient() {
   const navigate = useNavigate();
+  const { isOnline } = useNetwork();
   const [formData, setFormData] = useState({
     name: '', phone: '', age: '', gender: 'Female', 
     village: '', familyId: '', occupation: '',
@@ -51,6 +54,16 @@ export default function AddPatient() {
       healthId: `SWA-${Math.floor(1000 + Math.random() * 9000)}`,
       chronicConditions: formData.chronicConditions.split(',').map(c => c.trim()).filter(Boolean)
     };
+
+    if (!isOnline) {
+      // Save offline
+      const offlineId = await enqueueSyncTask('CREATE_PATIENT', payload);
+      toast.success('Patient saved offline. It will synchronize automatically when internet is available.');
+      // Since it's offline and we don't have a Mongo ID, we just navigate to patient list
+      navigate('/patients');
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await api.post('/patients', payload);

@@ -145,7 +145,7 @@ const getDashboardStats = async (req, res) => {
     next7Days.setDate(next7Days.getDate() + 7);
     const upcomingFollowUps = await FollowUp.find({
       workerId: req.userId,
-      status: 'Pending',
+      status: { $in: ['Pending', 'Missed'] },
       date: { $lte: next7Days } // overdue + next 7 days
     }).sort({ date: 1 }).limit(10).populate('patientId', 'name village');
 

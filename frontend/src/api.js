@@ -38,7 +38,7 @@ api.interceptors.response.use(
       localStorage.removeItem('worker');
       window.location.href = '/login';
     } else if (error.response?.status === 500) {
-      console.error('Server error:', error.response?.data);
+      // Silently pass 500 errors so they can be handled or queued by the offline sync engine
     } else if (error.response?.status === 400) {
       console.error('Bad Request (400):', JSON.stringify(error.response?.data));
     }

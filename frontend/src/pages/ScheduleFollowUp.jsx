@@ -5,11 +5,14 @@ import { ArrowLeft, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import api from '../api';
+import { useNetwork } from '../hooks/useNetwork';
+import { enqueueSyncTask } from '../utils/offlineStore';
 
 export default function ScheduleFollowUp() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isOnline } = useNetwork();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('09:00');
   const [priority, setPriority] = useState('Medium');
@@ -37,16 +40,27 @@ export default function ScheduleFollowUp() {
     }
     
     setLoading(true);
+
+    const payload = { 
+      patientId: id, 
+      date: new Date(date),
+      time,
+      priority, 
+      riskLevel,
+      reason,
+      notes 
+    };
+
+    if (!isOnline) {
+      await enqueueSyncTask('CREATE_FOLLOWUP', payload);
+      toast.success('Follow-up saved offline. It will synchronize automatically when internet is available.');
+      navigate(`/patients/${id}`);
+      setLoading(false);
+      return;
+    }
+
     try {
-      await api.post('/followups', { 
-        patientId: id, 
-        date: new Date(date),
-        time,
-        priority, 
-        riskLevel,
-        reason,
-        notes 
-      });
+      await api.post('/followups', payload);
       toast.success(t('schedule.success'));
       navigate(`/patients/${id}`);
     } catch (err) {

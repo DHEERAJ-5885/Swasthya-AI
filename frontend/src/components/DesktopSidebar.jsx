@@ -1,24 +1,35 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, Users, Stethoscope, Bell, Activity, UsersRound as FamilyIcon, 
-  LogOut, Settings, BarChart2, FileText, MessageSquare, ShieldPlus, ChevronDown, Calendar
+  LogOut, Settings, BarChart2, FileText, MessageSquare, ShieldPlus, ChevronDown, Calendar, 
+  UserPlus, ClipboardList, BellRing, RefreshCw
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import api from '../api';
+import { getCachedDashboardStats } from '../utils/offlineStore';
+
 export default function DesktopSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const worker = JSON.parse(localStorage.getItem('worker') || '{}');
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    import('../api').then(module => {
-      module.default.get('/dashboard/stats').then(res => {
+    const fetchUnread = async () => {
+      try {
+        if (!navigator.onLine) throw new Error('Offline');
+        const res = await api.get('/dashboard/stats');
         setUnreadCount(res.data.pendingAlerts || 0);
-      }).catch(err => console.error(err));
-    });
-  }, []);
+      } catch (err) {
+        const cached = await getCachedDashboardStats();
+        if (cached) setUnreadCount(cached.pendingAlerts || 0);
+      }
+    };
+    fetchUnread();
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -27,17 +38,19 @@ export default function DesktopSidebar() {
   };
 
   const navItems = [
-    { icon: Home, label: t('nav.dashboard'), path: '/' },
-    { icon: Users, label: t('nav.patients'), path: '/patients' },
-    { icon: Stethoscope, label: t('nav.screenings'), path: '/screenings' },
-    { icon: Bell, label: t('nav.alerts'), path: '/alerts', badge: unreadCount > 0 ? unreadCount : null },
-    { icon: Calendar, label: t('nav.calendar'), path: '/calendar' },
-    { icon: FamilyIcon, label: t('nav.familyInsights'), path: '/family-insights' },
-    { icon: Activity, label: t('nav.communityRisk'), path: '/community-risk' },
-    { icon: BarChart2, label: t('nav.analytics'), path: '/analytics' },
-    { icon: FileText, label: t('nav.reports'), path: '/reports' },
-    { icon: MessageSquare, label: t('nav.aiAssistant'), path: '/ai-assistant' },
-    { icon: Settings, label: t('nav.settings'), path: '/profile' },
+    { label: t('nav.dashboard', 'Dashboard'), icon: Home, path: '/' },
+    { label: t('nav.addPatient', 'Add Patient'), icon: UserPlus, path: '/patients/add' },
+    { label: t('nav.patients', 'Patients'), icon: Users, path: '/patients' },
+    { label: t('nav.screenings', 'Screenings'), icon: ClipboardList, path: '/screenings' },
+    { label: t('nav.followUps', 'Follow-ups'), icon: Calendar, path: '/follow-ups' },
+    { label: t('nav.alerts', 'Alerts'), icon: BellRing, path: '/alerts', badge: unreadCount > 0 ? unreadCount : null },
+    { label: t('nav.familyInsights', 'Family Insights'), icon: FamilyIcon, path: '/family-insights' },
+    { label: t('nav.communityRisk', 'Community Risk'), icon: Activity, path: '/community-risk' },
+    { label: t('nav.analytics', 'Analytics'), icon: BarChart2, path: '/analytics' },
+    { label: t('nav.reports', 'Reports'), icon: FileText, path: '/reports' },
+    { label: 'Sync Center', icon: RefreshCw, path: '/sync-center' },
+    { label: t('nav.aiAssistant', 'AI Assistant'), icon: MessageSquare, path: '/ai-assistant' },
+    { label: t('nav.settings', 'Settings'), icon: Settings, path: '/profile' },
   ];
 
   return (

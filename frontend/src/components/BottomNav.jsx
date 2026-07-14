@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Users, Plus, Bell, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import api from '../api';
+import { getCachedDashboardStats } from '../utils/offlineStore';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -10,11 +12,17 @@ export default function BottomNav() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    import('../api').then(module => {
-      module.default.get('/dashboard/stats').then(res => {
+    const fetchUnread = async () => {
+      try {
+        if (!navigator.onLine) throw new Error('Offline');
+        const res = await api.get('/dashboard/stats');
         setUnreadCount(res.data.pendingAlerts || 0);
-      }).catch(err => console.error(err));
-    });
+      } catch (err) {
+        const cached = await getCachedDashboardStats();
+        if (cached) setUnreadCount(cached.pendingAlerts || 0);
+      }
+    };
+    fetchUnread();
   }, [location.pathname]);
 
   // Define navigation items based on the reference image

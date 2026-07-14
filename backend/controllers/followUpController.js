@@ -73,17 +73,21 @@ const getFollowUps = async (req, res) => {
     });
 
     for (const item of overdue) {
-      item.status = 'Missed';
-      await item.save();
-      const message = `Follow-up overdue since ${new Date(item.date).toLocaleDateString()}`;
-      const existing = await Alert.findOne({ type: 'Missed', patientId: item.patientId, message });
-      if (!existing) {
-        await Alert.create({
-          type: 'Missed',
-          title: 'Missed Follow-up',
-          message,
-          patientId: item.patientId
-        });
+      try {
+        item.status = 'Missed';
+        await item.save();
+        const message = `Follow-up overdue since ${new Date(item.date).toLocaleDateString()}`;
+        const existing = await Alert.findOne({ type: 'Missed', patientId: item.patientId, message });
+        if (!existing) {
+          await Alert.create({
+            type: 'Missed',
+            title: 'Missed Follow-up',
+            message,
+            patientId: item.patientId
+          });
+        }
+      } catch (e) {
+        console.error('Failed to auto-mark follow-up as missed', e.message);
       }
     }
 

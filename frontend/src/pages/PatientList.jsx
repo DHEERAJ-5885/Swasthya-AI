@@ -7,6 +7,8 @@ import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
 
+import { getCachedPatients } from '../utils/offlineStore';
+
 export default function PatientList() {
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
@@ -15,15 +17,23 @@ export default function PatientList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Attempt fetch
-    api.get('/patients').then(res => {
-      setPatients(res.data);
-      setLoading(false);
-    }).catch(err => {
-      console.error(err);
-      toast.error(t('patients.failedLoad'));
-      setLoading(false);
-    });
+    if (navigator.onLine) {
+      api.get('/patients').then(res => {
+        setPatients(res.data);
+        setLoading(false);
+      }).catch(async err => {
+        console.error(err);
+        toast.error(t('patients.failedLoad') || 'Failed to load live data, showing offline cache');
+        const cached = await getCachedPatients();
+        if (cached && cached.length > 0) setPatients(cached);
+        setLoading(false);
+      });
+    } else {
+      getCachedPatients().then(cached => {
+        if (cached && cached.length > 0) setPatients(cached);
+        setLoading(false);
+      });
+    }
   }, [t]);
 
   const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));

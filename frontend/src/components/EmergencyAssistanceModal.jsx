@@ -5,9 +5,12 @@ import { emergencyConfig } from '../config/emergencyContacts';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../api';
+import { useNetwork } from '../hooks/useNetwork';
+import { enqueueSyncTask } from '../utils/offlineStore';
 
 const EmergencyAssistanceModal = ({ isOpen, onClose, onEmergencySaved }) => {
   const { t } = useTranslation();
+  const { isOnline } = useNetwork();
   const [step, setStep] = useState(1);
   const [patients, setPatients] = useState([]);
   const [search, setSearch] = useState('');
@@ -64,14 +67,28 @@ const EmergencyAssistanceModal = ({ isOpen, onClose, onEmergencySaved }) => {
     window.location.href = `tel:${selectedEmergency.number}`;
 
     setSaving(true);
+    
+    const payload = {
+      patientId: selectedPatient._id,
+      emergencyType: selectedEmergency.type,
+      emergencyContactCalled: selectedEmergency.service,
+      emergencyNumber: selectedEmergency.number,
+      notes
+    };
+
+    if (!isOnline) {
+      await enqueueSyncTask('CREATE_EMERGENCY', payload);
+      toast.success('Emergency Assistance Recorded Offline. It will sync when internet is restored.');
+      if (onEmergencySaved) {
+        onEmergencySaved();
+      }
+      setSaving(false);
+      onClose();
+      return;
+    }
+
     try {
-      await api.post('/emergency', {
-        patientId: selectedPatient._id,
-        emergencyType: selectedEmergency.type,
-        emergencyContactCalled: selectedEmergency.service,
-        emergencyNumber: selectedEmergency.number,
-        notes
-      });
+      await api.post('/emergency', payload);
       
       toast.success('Emergency Assistance Recorded Successfully.');
       if (onEmergencySaved) {

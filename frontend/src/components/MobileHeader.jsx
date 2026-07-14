@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Bell } from 'lucide-react';
 import api from '../api';
+import { getCachedDashboardStats } from '../utils/offlineStore';
 
 export default function MobileHeader({ title, actions }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    api.get('/dashboard/stats')
-      .then(res => setUnreadCount(res.data.pendingAlerts || 0))
-      .catch(err => console.error(err));
-  }, []);
+    const fetchUnread = async () => {
+      try {
+        if (!navigator.onLine) throw new Error('Offline');
+        const res = await api.get('/dashboard/stats');
+        setUnreadCount(res.data.pendingAlerts || 0);
+      } catch (err) {
+        const cached = await getCachedDashboardStats();
+        if (cached) setUnreadCount(cached.pendingAlerts || 0);
+      }
+    };
+    fetchUnread();
+  }, [location.pathname]);
 
   return (
     <div className="md:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 py-3 shadow-sm">

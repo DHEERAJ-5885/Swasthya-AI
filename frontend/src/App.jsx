@@ -53,6 +53,10 @@ export default function App() {
 
 
 
+import NetworkIndicator from './components/NetworkIndicator';
+import OfflineSyncCenter from './pages/OfflineSyncCenter';
+import ErrorBoundary from './components/ErrorBoundary';
+
 function AppShell() {
   const { token, isAuthenticated } = useAuth();
   const location = useLocation();
@@ -62,38 +66,45 @@ function AppShell() {
     <div 
       key={token || 'guest'} 
       id="app-shell" 
-      className={`relative flex h-screen w-full bg-[#F8FAFC] overflow-hidden ${
+      className={`relative flex flex-col h-screen w-full bg-[#F8FAFC] overflow-hidden ${
         isLoginPage ? '' : 'pb-[80px] md:pb-0'
       }`}
     >
       <Toaster position="top-center" toastOptions={{ style: { fontSize: '12px', fontWeight: 600, borderRadius: '12px' } }} />
+      <NetworkIndicator />
       {isAuthenticated && <HamburgerMenu />}
-      {isAuthenticated && !isLoginPage && <DesktopSidebar />}
       
-      <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><AshaWorkerProfile /></PrivateRoute>} />
-          <Route path="/patients" element={<PrivateRoute><PatientList /></PrivateRoute>} />
-          <Route path="/screenings" element={<PrivateRoute><ScreeningsList /></PrivateRoute>} />
-          <Route path="/patients/add" element={<PrivateRoute><AddPatient /></PrivateRoute>} />
-          <Route path="/patients/:id" element={<PrivateRoute><PatientProfile /></PrivateRoute>} />
-          <Route path="/patients/:id/screen" element={<PrivateRoute><ScreeningFlow /></PrivateRoute>} />
-          <Route path="/patients/:id/result" element={<PrivateRoute><ResultScreen /></PrivateRoute>} />
-          <Route path="/follow-ups" element={<PrivateRoute><FollowUpList /></PrivateRoute>} />
-          <Route path="/calendar" element={<PrivateRoute><FollowUpCalendar /></PrivateRoute>} />
-          <Route path="/patients/:id/schedule-follow-up" element={<PrivateRoute><ScheduleFollowUp /></PrivateRoute>} />
-          <Route path="/family-insights" element={<PrivateRoute><FamilyInsights /></PrivateRoute>} />
-          <Route path="/community-risk" element={<PrivateRoute><CommunityRisk /></PrivateRoute>} />
-          <Route path="/alerts" element={<PrivateRoute><Alerts /></PrivateRoute>} />
-          <Route path="/alerts/:id" element={<PrivateRoute><AlertDetail /></PrivateRoute>} />
-          <Route path="/ai-insights" element={<PrivateRoute><AIInsights /></PrivateRoute>} />
-          <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
-          <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
-          <Route path="/ai-assistant" element={<PrivateRoute><AIAssistantPage /></PrivateRoute>} />
-        </Routes>
-      </main>
+      <div className="flex-1 flex overflow-hidden w-full">
+        {isAuthenticated && !isLoginPage && <DesktopSidebar />}
+        
+        <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto relative bg-[#F8FAFC]">
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/sync-center" element={<PrivateRoute><OfflineSyncCenter /></PrivateRoute>} />
+              <Route path="/profile" element={<PrivateRoute><AshaWorkerProfile /></PrivateRoute>} />
+              <Route path="/patients" element={<PrivateRoute><PatientList /></PrivateRoute>} />
+              <Route path="/screenings" element={<PrivateRoute><ScreeningsList /></PrivateRoute>} />
+              <Route path="/patients/add" element={<PrivateRoute><AddPatient /></PrivateRoute>} />
+              <Route path="/patients/:id" element={<PrivateRoute><PatientProfile /></PrivateRoute>} />
+              <Route path="/patients/:id/screen" element={<PrivateRoute><ScreeningFlow /></PrivateRoute>} />
+              <Route path="/patients/:id/result" element={<PrivateRoute><ResultScreen /></PrivateRoute>} />
+              <Route path="/follow-ups" element={<PrivateRoute><FollowUpList /></PrivateRoute>} />
+              <Route path="/calendar" element={<PrivateRoute><FollowUpCalendar /></PrivateRoute>} />
+              <Route path="/patients/:id/schedule-follow-up" element={<PrivateRoute><ScheduleFollowUp /></PrivateRoute>} />
+              <Route path="/family-insights" element={<PrivateRoute><FamilyInsights /></PrivateRoute>} />
+              <Route path="/community-risk" element={<PrivateRoute><CommunityRisk /></PrivateRoute>} />
+              <Route path="/alerts" element={<PrivateRoute><Alerts /></PrivateRoute>} />
+              <Route path="/alerts/:id" element={<PrivateRoute><AlertDetail /></PrivateRoute>} />
+              <Route path="/ai-insights" element={<PrivateRoute><AIInsights /></PrivateRoute>} />
+              <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+              <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+              <Route path="/ai-assistant" element={<PrivateRoute><AIAssistantPage /></PrivateRoute>} />
+            </Routes>
+          </ErrorBoundary>
+        </main>
+      </div>
       
       {!isLoginPage && <BottomNav />}
       {isAuthenticated && <AIAssistant />}

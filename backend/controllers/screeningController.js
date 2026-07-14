@@ -73,65 +73,73 @@ const createScreening = async (req, res) => {
     await screening.save();
 
     // 1. Create Patient Alert if High Risk or Critical Drift
-    if (['High Risk'].includes(finalResult.riskLevel) || finalResult.trendDirection === 'Critical Drift') {
-      const alert = new Alert({
-        type: 'Emergency',
-        title: 'Emergency Referral Required',
-        message: `Patient needs immediate attention. ${finalResult.aiExplanation || finalResult.reason}`,
-        patientId: patientId
-      });
-      await alert.save();
-      
-      // Create notification for worker
-      if (workerId) {
-        await createNotification(
-          workerId,
-          patientId,
-          'emergency',
-          'Emergency Alert',
-          `High-risk patient detected. ${finalResult.aiExplanation || finalResult.reason}`,
-          'critical'
-        );
+    try {
+      if (['High Risk'].includes(finalResult.riskLevel) || finalResult.trendDirection === 'Critical Drift') {
+        const alert = new Alert({
+          type: 'Emergency',
+          title: 'Emergency Referral Required',
+          message: `Patient needs immediate attention. ${finalResult.aiExplanation || finalResult.reason}`,
+          patientId: patientId
+        });
+        await alert.save();
+        
+        // Create notification for worker
+        if (workerId) {
+          await createNotification(
+            workerId,
+            patientId,
+            'emergency',
+            'Emergency Alert',
+            `High-risk patient detected. ${finalResult.aiExplanation || finalResult.reason}`,
+            'critical'
+          );
+        }
       }
+    } catch (alertErr) {
+      console.error('Failed to create alert, but continuing:', alertErr);
     }
 
     // 2. Schedule Follow-up if Declining, Critical, or High Risk
-    if (['Declining', 'Critical Drift'].includes(finalResult.trendDirection) || ['High Risk'].includes(finalResult.riskLevel)) {
-      const FollowUp = require('../models/FollowUp');
-      
-      let followUpDays = 7;
-      if (finalResult.trendDirection === 'Declining') followUpDays = 3;
-      if (finalResult.trendDirection === 'Critical Drift' || ['High Risk'].includes(finalResult.riskLevel)) followUpDays = 1;
-      
-      const followUpDate = new Date();
-      followUpDate.setDate(followUpDate.getDate() + followUpDays);
-      
-      const followUp = new FollowUp({
-        patientId,
-        patientName: patient.name,
-        village: patient.village,
-        workerId: workerId,
-        date: followUpDate,
-        time: "09:00",
-        notes: finalResult.followUpRecommendation || 'Urgent AI Drift Detection Follow-up',
-        reason: 'Automated screening follow-up due to high risk/critical drift',
-        priority: ['High Risk'].includes(finalResult.riskLevel) ? 'High' : 'Medium',
-        riskLevel: finalResult.riskLevel,
-        status: 'Pending'
-      });
-      await followUp.save();
-      
-      // Create notification for follow-up needed
-      if (workerId) {
-        await createNotification(
-          workerId,
+    try {
+      if (['Declining', 'Critical Drift'].includes(finalResult.trendDirection) || ['High Risk'].includes(finalResult.riskLevel)) {
+        const FollowUp = require('../models/FollowUp');
+        
+        let followUpDays = 7;
+        if (finalResult.trendDirection === 'Declining') followUpDays = 3;
+        if (finalResult.trendDirection === 'Critical Drift' || ['High Risk'].includes(finalResult.riskLevel)) followUpDays = 1;
+        
+        const followUpDate = new Date();
+        followUpDate.setDate(followUpDate.getDate() + followUpDays);
+        
+        const followUp = new FollowUp({
           patientId,
-          'high_risk',
-          'Follow-up Required',
-          `Patient requires follow-up in ${followUpDays} day(s). Risk level: ${finalResult.riskLevel}`,
-          'high'
-        );
+          patientName: patient.name,
+          village: patient.village,
+          workerId: workerId,
+          date: followUpDate,
+          time: "09:00",
+          notes: finalResult.followUpRecommendation || 'Urgent AI Drift Detection Follow-up',
+          reason: 'Automated screening follow-up due to high risk/critical drift',
+          priority: ['High Risk'].includes(finalResult.riskLevel) ? 'High' : 'Medium',
+          riskLevel: finalResult.riskLevel,
+          status: 'Pending'
+        });
+        await followUp.save();
+        
+        // Create notification for follow-up needed
+        if (workerId) {
+          await createNotification(
+            workerId,
+            patientId,
+            'high_risk',
+            'Follow-up Required',
+            `Patient requires follow-up in ${followUpDays} day(s). Risk level: ${finalResult.riskLevel}`,
+            'high'
+          );
+        }
       }
+    } catch (followUpErr) {
+      console.error('Failed to create follow-up, but continuing:', followUpErr);
     }
     
     // 3. Asynchronously submit to Cardano (fire-and-forget)

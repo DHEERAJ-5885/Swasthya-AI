@@ -15,8 +15,13 @@ class NetworkProvider {
     }
 
     try {
-      // Dynamically import ESM package in CJS environment
-      const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
+      // Resolve @lucid-evolution/lucid dynamically from the backend's node_modules
+      const { createRequire } = require('module');
+      const path = require('path');
+      const { pathToFileURL } = require('url');
+      const requireFromBackend = createRequire(path.resolve(__dirname, '../../backend/server.js'));
+      const lucidPath = requireFromBackend.resolve('@lucid-evolution/lucid');
+      const { Lucid, Blockfrost } = await import(pathToFileURL(lucidPath).href);
 
       const blockfrostUrl = config.network === 'Mainnet' 
         ? 'https://cardano-mainnet.blockfrost.io/api/v0' 

@@ -28,36 +28,45 @@ const createEmergency = async (req, res) => {
     await newEmergency.save();
 
     // Create Alert
-    const alert = new Alert({
-      type: 'Emergency',
-      message: `Emergency Assistance Initiated: ${emergencyType}`,
-      patientId: patient._id,
-      patientName: patient.name,
-      village: patient.village,
-      workerId: workerId,
-      status: 'Pending',
-      priority: 'High'
-    });
-    await alert.save();
+    try {
+      const alert = new Alert({
+        type: 'Emergency',
+        title: 'Emergency Assistance',
+        message: `Emergency Assistance Initiated: ${emergencyType}`,
+        patientId: patient._id,
+        patientName: patient.name,
+        village: patient.village,
+        workerId: workerId,
+        status: 'Pending',
+        priority: 'High'
+      });
+      await alert.save();
+    } catch (e) {
+      console.error('Failed to create emergency alert:', e);
+    }
 
     // Create FollowUp for tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
 
-    const followUp = new FollowUp({
-      patientId: patient._id,
-      patientName: patient.name,
-      village: patient.village,
-      workerId: workerId,
-      date: tomorrow,
-      time: '09:00', // Default morning
-      priority: 'High',
-      riskLevel: 'High Risk',
-      reason: 'Emergency Follow-up',
-      notes: `Follow up on emergency: ${emergencyType}`
-    });
-    await followUp.save();
+      const followUp = new FollowUp({
+        patientId: patient._id,
+        patientName: patient.name,
+        village: patient.village,
+        workerId: workerId,
+        date: tomorrow,
+        time: '09:00', // Default morning
+        priority: 'High',
+        riskLevel: 'High Risk',
+        reason: 'Emergency Follow-up',
+        notes: `Follow up on emergency: ${emergencyType}`
+      });
+      await followUp.save();
+    } catch (e) {
+      console.error('Failed to schedule emergency follow-up:', e);
+    }
 
     res.status(201).json(newEmergency);
   } catch (err) {
