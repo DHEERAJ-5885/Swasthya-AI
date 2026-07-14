@@ -136,17 +136,35 @@ export const processSyncQueue = async () => {
   if (successCount > 0) {
     toast.success(`Synchronization completed. ${successCount} records synced.`);
     // Fetch and cache updated dashboard stats and other core data
-    try {
-      const statsRes = await api.get('/dashboard/stats');
-      await cacheDashboardStats(statsRes.data);
-      
-      const patientsRes = await api.get('/patients');
-      await cachePatients(patientsRes.data);
-      
-      // Note: other caches like screenings, alerts, followups are 
-      // generally refreshed when the user navigates to those pages.
-    } catch(err) {
-      console.warn('Failed to refresh data caches after sync', err);
-    }
+    prefetchOfflineData();
+  }
+};
+
+export const prefetchOfflineData = async () => {
+  if (!navigator.onLine) return;
+  try {
+    const [stats, patients, alerts, followups, communityRisk, analytics, insights] = await Promise.allSettled([
+      api.get('/dashboard/stats'),
+      api.get('/patients'),
+      api.get('/emergency/alerts'),
+      api.get('/followups'),
+      api.get('/community-risk'),
+      api.get('/advanced'),
+      api.get('/insights')
+    ]);
+
+    if (stats.status === 'fulfilled') await cacheDashboardStats(stats.value.data);
+    if (patients.status === 'fulfilled') await cachePatients(patients.value.data);
+    
+    const { cacheAlerts, cacheFollowUps, cacheCommunityRisk, cacheAnalytics, cacheAIInsights } = await import('./offlineStore');
+    
+    if (alerts.status === 'fulfilled') await cacheAlerts(alerts.value.data);
+    if (followups.status === 'fulfilled') await cacheFollowUps(followups.value.data);
+    if (communityRisk.status === 'fulfilled') await cacheCommunityRisk(communityRisk.value.data);
+    if (analytics.status === 'fulfilled') await cacheAnalytics(analytics.value.data);
+    if (insights.status === 'fulfilled') await cacheAIInsights(insights.value.data);
+    
+  } catch (err) {
+    console.warn('Background prefetch failed', err);
   }
 };

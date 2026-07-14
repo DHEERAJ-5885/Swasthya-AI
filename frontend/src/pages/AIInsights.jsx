@@ -22,15 +22,29 @@ export default function AIInsights() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/insights')
-      .then(res => {
-        setData(res.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        toast.error(t('insights.errLoad'));
+    if (navigator.onLine) {
+      api.get('/insights')
+        .then(async res => {
+          setData(res.data);
+          const { cacheAIInsights } = await import('../utils/offlineStore');
+          await cacheAIInsights(res.data);
+          setLoading(false);
+        })
+        .catch(async () => {
+          const { getCachedAIInsights } = await import('../utils/offlineStore');
+          const cached = await getCachedAIInsights();
+          if (cached) setData(cached);
+          else toast.error(t('insights.errLoad'));
+          setLoading(false);
+        });
+    } else {
+      import('../utils/offlineStore').then(async ({ getCachedAIInsights }) => {
+        const cached = await getCachedAIInsights();
+        if (cached) setData(cached);
+        else toast.error(t('insights.errLoad'));
         setLoading(false);
       });
+    }
   }, [t]);
 
   if (loading) {

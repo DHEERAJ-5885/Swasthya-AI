@@ -12,16 +12,28 @@ export default function FollowUpList() {
   const [loading, setLoading] = useState(true);
 
   const fetchFollowUps = useCallback(async () => {
-    try {
-      const res = await api.get('/followups');
-      setFollowUps(res.data);
-    } catch (err) {
-      console.error(err);
-      toast.error(t('list.failedLoad'));
-    } finally {
+    if (navigator.onLine) {
+      try {
+        const res = await api.get('/followups');
+        setFollowUps(res.data);
+        const { cacheFollowUps } = await import('../utils/offlineStore');
+        await cacheFollowUps(res.data);
+      } catch (err) {
+        console.error(err);
+        const { getCachedFollowUps } = await import('../utils/offlineStore');
+        const cached = await getCachedFollowUps();
+        if (cached && cached.length > 0) setFollowUps(cached);
+        else toast.error(t('list.failedLoad'));
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      const { getCachedFollowUps } = await import('../utils/offlineStore');
+      const cached = await getCachedFollowUps();
+      if (cached && cached.length > 0) setFollowUps(cached);
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

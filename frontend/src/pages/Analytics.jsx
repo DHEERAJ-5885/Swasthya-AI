@@ -18,15 +18,29 @@ export default function Analytics() {
   const [timeRange] = useState(t('analytics.timeRange7Days', '7 Days'));
 
   useEffect(() => {
-    api.get('/advanced')
-      .then(res => {
-        setData(res.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        toast.error(t('analytics.errLoad'));
+    if (navigator.onLine) {
+      api.get('/advanced')
+        .then(async res => {
+          setData(res.data);
+          const { cacheAnalytics } = await import('../utils/offlineStore');
+          await cacheAnalytics(res.data);
+          setLoading(false);
+        })
+        .catch(async () => {
+          const { getCachedAnalytics } = await import('../utils/offlineStore');
+          const cached = await getCachedAnalytics();
+          if (cached) setData(cached);
+          else toast.error(t('analytics.errLoad'));
+          setLoading(false);
+        });
+    } else {
+      import('../utils/offlineStore').then(async ({ getCachedAnalytics }) => {
+        const cached = await getCachedAnalytics();
+        if (cached) setData(cached);
+        else toast.error(t('analytics.errLoad'));
         setLoading(false);
       });
+    }
   }, [t]);
 
   if (loading) {

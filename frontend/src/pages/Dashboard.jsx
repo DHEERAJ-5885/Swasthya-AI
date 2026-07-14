@@ -20,6 +20,7 @@ import {
 } from 'recharts';
 
 import { getPendingTasks, cacheDashboardStats, getCachedDashboardStats } from '../utils/offlineStore';
+import { prefetchOfflineData } from '../utils/syncEngine';
 
 // Data is now fetched from the backend API
 
@@ -41,6 +42,8 @@ export default function Dashboard() {
           setStats(res.data);
           await cacheDashboardStats(res.data);
           setLoading(false);
+          // Trigger background prefetch of all other data for offline use
+          prefetchOfflineData();
         })
         .catch(async err => {
           console.error('Failed to load dashboard stats', err);
@@ -382,24 +385,28 @@ export default function Dashboard() {
                   </select>
                 </div>
                 <div className="flex-1 w-full -ml-6 pr-2">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                    <AreaChart data={data.patientTrendData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                      <RechartsTooltip 
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                        itemStyle={{ color: '#7c3aed', fontWeight: 'bold' }}
-                      />
-                      <Area type="monotone" dataKey="patients" stroke="#7c3aed" strokeWidth={3} fillOpacity={1} fill="url(#colorPatients)" activeDot={{ r: 6, strokeWidth: 0, fill: '#7c3aed' }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {data.patientTrendData && data.patientTrendData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                      <AreaChart data={data.patientTrendData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                        <RechartsTooltip 
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                          itemStyle={{ color: '#7c3aed', fontWeight: 'bold' }}
+                        />
+                        <Area type="monotone" dataKey="patients" stroke="#7c3aed" strokeWidth={3} fillOpacity={1} fill="url(#colorPatients)" activeDot={{ r: 6, strokeWidth: 0, fill: '#7c3aed' }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full text-slate-400 text-xs font-semibold bg-slate-50 rounded-xl">No data available</div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -412,23 +419,27 @@ export default function Dashboard() {
                 <h3 className="text-sm font-bold text-slate-900 mb-2">{t('dashboard.topHealthConditions')}</h3>
                 <div className="flex-1 flex items-center justify-between">
                   <div className="w-1/2 h-full relative">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                      <PieChart>
-                        <Pie
-                          data={data.healthConditionsData}
-                          innerRadius={50}
-                          outerRadius={70}
-                          paddingAngle={2}
-                          dataKey="value"
-                          stroke="none"
-                        >
-                          {data.healthConditionsData?.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    {data.healthConditionsData && data.healthConditionsData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                        <PieChart>
+                          <Pie
+                            data={data.healthConditionsData}
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={2}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            {data.healthConditionsData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full text-slate-400 text-xs font-semibold">No data</div>
+                    )}
                     {/* Center Text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <span className="text-2xl font-bold text-slate-900">{data.totalPatients}</span>
@@ -662,11 +673,15 @@ function MetricCard({ title, value, icon: Icon, trend, trendUp, color, chartData
             
             {/* Sparkline */}
             <div className="w-16 h-8 opacity-60 group-hover:opacity-100 transition-opacity">
-              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                <LineChart data={chartData}>
-                  <Line type="monotone" dataKey="v" stroke={strokeMap[color]} strokeWidth={2} dot={false} isAnimationActive={true} />
-                </LineChart>
-              </ResponsiveContainer>
+              {chartData && chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                  <LineChart data={chartData}>
+                    <Line type="monotone" dataKey="v" stroke={strokeMap[color]} strokeWidth={2} dot={false} isAnimationActive={true} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full bg-slate-50 rounded"></div>
+              )}
             </div>
           </div>
         </CardContent>

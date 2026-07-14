@@ -14,15 +14,28 @@ export default function CommunityRisk() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/community-risk')
-      .then(res => {
-        setData(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
+    if (navigator.onLine) {
+      api.get('/community-risk')
+        .then(async res => {
+          setData(res.data);
+          const { cacheCommunityRisk } = await import('../utils/offlineStore');
+          await cacheCommunityRisk(res.data);
+          setLoading(false);
+        })
+        .catch(async err => {
+          console.error(err);
+          const { getCachedCommunityRisk } = await import('../utils/offlineStore');
+          const cached = await getCachedCommunityRisk();
+          if (cached) setData(cached);
+          setLoading(false);
+        });
+    } else {
+      import('../utils/offlineStore').then(async ({ getCachedCommunityRisk }) => {
+        const cached = await getCachedCommunityRisk();
+        if (cached) setData(cached);
         setLoading(false);
       });
+    }
   }, []);
 
   if (loading) {

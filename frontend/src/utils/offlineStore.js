@@ -207,4 +207,35 @@ export const getCachedBlockchainStatus = async (patientId) => {
   return record ? record.data : null;
 };
 
+export const cacheCommunityRisk = async (data) => {
+  const db = await initDB();
+  await db.put('dashboardCache', { key: 'communityRisk', data, timestamp: new Date().toISOString() });
+};
 
+export const getCachedCommunityRisk = async () => {
+  const db = await initDB();
+  const record = await db.get('dashboardCache', 'communityRisk');
+  return record ? record.data : null;
+};
+
+export const cacheAnalytics = async (data) => {
+  const db = await initDB();
+  await db.put('analyticsCache', { key: 'advanced_analytics', data, timestamp: new Date().toISOString() });
+};
+
+export const getCachedAnalytics = async () => {
+  const db = await initDB();
+  const record = await db.get('analyticsCache', 'advanced_analytics');
+  return record ? record.data : null;
+};
+
+export const cacheAIInsights = async (data) => {
+  const db = await initDB();
+  await db.put('analyticsCache', { key: 'ai_insights', data, timestamp: new Date().toISOString() });
+};
+
+export const getCachedAIInsights = async () => {
+  const db = await initDB();
+  const record = await db.get('analyticsCache', 'ai_insights');
+  return record ? record.data : null;
+};
