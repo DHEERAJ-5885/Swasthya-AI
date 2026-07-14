@@ -5,23 +5,34 @@ import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
 
+import { getCachedAlerts, cacheAlerts } from '../utils/offlineStore';
+
 export default function Alerts() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
-    api.get('/alerts')
-      .then(res => {
-        setAlerts(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
+    if (navigator.onLine) {
+      api.get('/alerts')
+        .then(async res => {
+          setAlerts(res.data);
+          await cacheAlerts(res.data);
+          setLoading(false);
+        })
+        .catch(async err => {
+          console.error(err);
+          const cached = await getCachedAlerts();
+          if (cached && cached.length > 0) setAlerts(cached);
+          setLoading(false);
+        });
+    } else {
+      getCachedAlerts().then(cached => {
+        if (cached && cached.length > 0) setAlerts(cached);
         setLoading(false);
       });
+    }
   }, []);
 
   const getIconData = (type) => {

@@ -7,7 +7,7 @@ import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
 import { useNetwork } from '../hooks/useNetwork';
-import { enqueueSyncTask } from '../utils/offlineStore';
+import { enqueueSyncTask, cachePatients } from '../utils/offlineStore';
 
 export default function AddPatient() {
   const navigate = useNavigate();
@@ -55,12 +55,22 @@ export default function AddPatient() {
       chronicConditions: formData.chronicConditions.split(',').map(c => c.trim()).filter(Boolean)
     };
 
-    if (!isOnline) {
+    if (!navigator.onLine) {
       // Save offline
-      const offlineId = await enqueueSyncTask('CREATE_PATIENT', payload);
-      toast.success('Patient saved offline. It will synchronize automatically when internet is available.');
-      // Since it's offline and we don't have a Mongo ID, we just navigate to patient list
-      navigate('/patients');
+      const offlineId = `offline_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+      const offlinePatient = {
+        ...payload,
+        _id: offlineId,
+        createdAt: new Date().toISOString(),
+        _isOffline: true
+      };
+      
+      await enqueueSyncTask('CREATE_PATIENT', offlinePatient);
+      // Immediately cache so it appears in the Patient List and Profile instantly
+      await cachePatients([offlinePatient]);
+      
+      toast.success(t('form.successCreated') + ' (Saved Offline)');
+      navigate(`/patients/${offlineId}`);
       setLoading(false);
       return;
     }

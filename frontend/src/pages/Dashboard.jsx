@@ -19,7 +19,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 
-import { getPendingTasks } from '../utils/offlineStore';
+import { getPendingTasks, cacheDashboardStats, getCachedDashboardStats } from '../utils/offlineStore';
 
 // Data is now fetched from the backend API
 
@@ -33,24 +33,24 @@ export default function Dashboard() {
   const worker = JSON.parse(localStorage.getItem('worker') || '{"name":"ASHA Worker", "village":""}');
   const { t } = useTranslation();
 
-  const fetchStats = () => {
-    // If online, fetch from backend. If offline, try to load last cached stats from localStorage if we had one.
+  const fetchStats = async () => {
+    // If online, fetch from backend. If offline, try to load last cached stats.
     if (navigator.onLine) {
       api.get('/dashboard/stats')
-        .then(res => {
+        .then(async res => {
           setStats(res.data);
-          localStorage.setItem('dashboardStatsCache', JSON.stringify(res.data));
+          await cacheDashboardStats(res.data);
           setLoading(false);
         })
-        .catch(err => {
+        .catch(async err => {
           console.error('Failed to load dashboard stats', err);
-          const cached = localStorage.getItem('dashboardStatsCache');
-          if (cached) setStats(JSON.parse(cached));
+          const cached = await getCachedDashboardStats();
+          if (cached) setStats(cached);
           setLoading(false);
         });
     } else {
-      const cached = localStorage.getItem('dashboardStatsCache');
-      if (cached) setStats(JSON.parse(cached));
+      const cached = await getCachedDashboardStats();
+      if (cached) setStats(cached);
       setLoading(false);
     }
   };

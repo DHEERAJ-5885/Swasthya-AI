@@ -7,7 +7,7 @@ import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
 
-import { getCachedPatients } from '../utils/offlineStore';
+import { getCachedPatients, cachePatients } from '../utils/offlineStore';
 
 export default function PatientList() {
   const navigate = useNavigate();
@@ -18,8 +18,13 @@ export default function PatientList() {
 
   useEffect(() => {
     if (navigator.onLine) {
-      api.get('/patients').then(res => {
-        setPatients(res.data);
+      api.get('/patients').then(async res => {
+        const cached = await getCachedPatients();
+        const offlinePatients = cached.filter(p => p._isOffline);
+        
+        const merged = [...offlinePatients, ...res.data];
+        setPatients(merged);
+        cachePatients(res.data);
         setLoading(false);
       }).catch(async err => {
         console.error(err);

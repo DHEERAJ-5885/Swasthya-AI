@@ -7,7 +7,7 @@ import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
 import { useNetwork } from '../hooks/useNetwork';
-import { enqueueSyncTask } from '../utils/offlineStore';
+import { enqueueSyncTask, cacheScreenings, getCachedScreeningsByPatient } from '../utils/offlineStore';
 
 const getSteps = (t) => [
   { 
@@ -148,6 +148,12 @@ export default function ScreeningFlow() {
   useEffect(() => {
     const fetchPrevious = async () => {
       try {
+        if (!navigator.onLine) {
+          const cachedScreenings = await getCachedScreeningsByPatient(id);
+          const last = cachedScreenings && cachedScreenings.length > 0 ? cachedScreenings[cachedScreenings.length - 1] : null;
+          setPreviousScreening(last);
+          return;
+        }
         const res = await api.get(`/analyze/${id}`);
         const last = res.data[res.data.length - 1];
         setPreviousScreening(last || null);
@@ -199,11 +205,38 @@ export default function ScreeningFlow() {
       workerId: worker._id
     };
     
-    if (!isOnline) {
-      await enqueueSyncTask('CREATE_SCREENING', payload);
+    if (!navigator.onLine) {
+      // Create mock AI report when offline
+      const mockRiskScore = 45; // arbitrary default for offline
+      const mockResult = {
+        riskLevel: 'Medium Risk',
+        riskScore: mockRiskScore,
+        explanation: 'Offline AI Assessment. Data will be re-evaluated fully when internet is restored.',
+        recommendation: 'Monitor vitals. Await complete AI analysis upon sync.',
+        trend: 'Unknown',
+        trendDirection: 'Stable'
+      };
+
+      const payloadWithResult = {
+        ...payload,
+        result: mockResult,
+        _id: `offline_screening_${Date.now()}`
+      };
+
+      await enqueueSyncTask('CREATE_SCREENING', payloadWithResult);
+      await cacheScreenings([{ ...payloadWithResult, createdAt: new Date().toISOString() }]);
+
       localStorage.removeItem(`screeningDraft:${id}`);
-      toast.success('Screening saved successfully. It will automatically synchronize when internet becomes available.');
-      navigate(`/patients/${id}`);
+      toast.success('Screening saved successfully (Offline). It will automatically synchronize when internet becomes available.');
+      
+      // Navigate to result screen with the mock result
+      navigate(`/patients/${id}/result`, {
+        state: {
+          result: mockResult,
+          screeningId: payloadWithResult._id,
+          verification: null
+        }
+      });
       setLoading(false);
       return;
     }

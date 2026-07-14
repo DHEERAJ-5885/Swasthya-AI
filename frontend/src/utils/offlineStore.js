@@ -2,7 +2,7 @@ import { openDB } from 'idb';
 import { encryptPatientData, decryptPatientData } from './cryptoUtils';
 
 const DB_NAME = 'swasthya-offline-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 /**
  * Initializes the IndexedDB for offline storage
@@ -10,21 +10,19 @@ const DB_VERSION = 1;
 export const initDB = async () => {
   return openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
-      if (!db.objectStoreNames.contains('syncQueue')) {
-        db.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains('syncHistory')) {
-        db.createObjectStore('syncHistory', { keyPath: 'id', autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains('patientsCache')) {
-        db.createObjectStore('patientsCache', { keyPath: '_id' });
-      }
-      if (!db.objectStoreNames.contains('screeningsCache')) {
-        db.createObjectStore('screeningsCache', { keyPath: '_id' });
-      }
-      if (!db.objectStoreNames.contains('dashboardCache')) {
-        db.createObjectStore('dashboardCache', { keyPath: 'key' });
-      }
+      if (!db.objectStoreNames.contains('syncQueue')) db.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('syncHistory')) db.createObjectStore('syncHistory', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('patientsCache')) db.createObjectStore('patientsCache', { keyPath: '_id' });
+      if (!db.objectStoreNames.contains('screeningsCache')) db.createObjectStore('screeningsCache', { keyPath: '_id' });
+      if (!db.objectStoreNames.contains('dashboardCache')) db.createObjectStore('dashboardCache', { keyPath: 'key' });
+      
+      // New stores for Milestone 1
+      if (!db.objectStoreNames.contains('patientProfilesCache')) db.createObjectStore('patientProfilesCache', { keyPath: '_id' });
+      if (!db.objectStoreNames.contains('reportsCache')) db.createObjectStore('reportsCache', { keyPath: 'key' });
+      if (!db.objectStoreNames.contains('followupsCache')) db.createObjectStore('followupsCache', { keyPath: '_id' });
+      if (!db.objectStoreNames.contains('alertsCache')) db.createObjectStore('alertsCache', { keyPath: '_id' });
+      if (!db.objectStoreNames.contains('analyticsCache')) db.createObjectStore('analyticsCache', { keyPath: 'key' });
+      if (!db.objectStoreNames.contains('blockchainCache')) db.createObjectStore('blockchainCache', { keyPath: 'patientId' });
     },
   });
 };
@@ -43,8 +41,6 @@ export const enqueueSyncTask = async (type, payload) => {
   let processedPayload = payload;
   if (type === 'CREATE_PATIENT' || type === 'UPDATE_PATIENT') {
     processedPayload = encryptPatientData(payload);
-  } else if (type === 'CREATE_SCREENING') {
-    // We only encrypt the patient name if it's stored inside the screening payload, but usually it's just IDs
   }
 
   const task = {
@@ -90,7 +86,7 @@ export const addSyncHistory = async (task, resultStatus, message) => {
     taskId: task.id,
     type: task.type,
     syncedAt: new Date().toISOString(),
-    status: resultStatus, // 'SUCCESS' or 'FAILED'
+    status: resultStatus,
     message
   };
   await db.add('syncHistory', historyRecord);
@@ -107,12 +103,9 @@ export const cachePatients = async (patients) => {
   if (!patients || !Array.isArray(patients)) return;
   const db = await initDB();
   const tx = db.transaction('patientsCache', 'readwrite');
-  
   for (const p of patients) {
-    const encrypted = encryptPatientData(p);
-    await tx.store.put(encrypted);
+    await tx.store.put(encryptPatientData(p));
   }
-  
   await tx.done;
 };
 
@@ -125,7 +118,7 @@ export const getCachedPatients = async () => {
 export const getCachedPatientById = async (id) => {
   const db = await initDB();
   const patient = await db.get('patientsCache', id);
-  return decryptPatientData(patient);
+  return patient ? decryptPatientData(patient) : null;
 };
 
 export const cacheDashboardStats = async (stats) => {
@@ -138,3 +131,80 @@ export const getCachedDashboardStats = async () => {
   const record = await db.get('dashboardCache', 'main_stats');
   return record ? record.data : null;
 };
+
+// Milestone 1: New Cache Getters & Setters
+
+export const cachePatientProfile = async (id, profileData) => {
+  const db = await initDB();
+  await db.put('patientProfilesCache', { _id: id, ...encryptPatientData(profileData), timestamp: new Date().toISOString() });
+};
+
+export const getCachedPatientProfile = async (id) => {
+  const db = await initDB();
+  const profile = await db.get('patientProfilesCache', id);
+  return profile ? decryptPatientData(profile) : null;
+};
+
+export const cacheScreenings = async (screenings) => {
+  if (!screenings || !Array.isArray(screenings)) return;
+  const db = await initDB();
+  const tx = db.transaction('screeningsCache', 'readwrite');
+  for (const s of screenings) await tx.store.put(s);
+  await tx.done;
+};
+
+export const getCachedScreeningsByPatient = async (patientId) => {
+  const db = await initDB();
+  const screenings = await db.getAll('screeningsCache');
+  return screenings.filter(s => s.patientId === patientId || s.patient === patientId);
+};
+
+export const cacheAlerts = async (alerts) => {
+  if (!alerts || !Array.isArray(alerts)) return;
+  const db = await initDB();
+  const tx = db.transaction('alertsCache', 'readwrite');
+  for (const a of alerts) await tx.store.put(a);
+  await tx.done;
+};
+
+export const getCachedAlerts = async () => {
+  const db = await initDB();
+  return db.getAll('alertsCache');
+};
+
+export const cacheFollowUps = async (followUps) => {
+  if (!followUps || !Array.isArray(followUps)) return;
+  const db = await initDB();
+  const tx = db.transaction('followupsCache', 'readwrite');
+  for (const f of followUps) await tx.store.put(f);
+  await tx.done;
+};
+
+export const getCachedFollowUps = async () => {
+  const db = await initDB();
+  return db.getAll('followupsCache');
+};
+
+export const cacheReports = async (reports) => {
+  const db = await initDB();
+  await db.put('reportsCache', { key: 'all_reports', data: reports, timestamp: new Date().toISOString() });
+};
+
+export const getCachedReports = async () => {
+  const db = await initDB();
+  const record = await db.get('reportsCache', 'all_reports');
+  return record ? record.data : [];
+};
+
+export const cacheBlockchainStatus = async (patientId, data) => {
+  const db = await initDB();
+  await db.put('blockchainCache', { patientId, data, timestamp: new Date().toISOString() });
+};
+
+export const getCachedBlockchainStatus = async (patientId) => {
+  const db = await initDB();
+  const record = await db.get('blockchainCache', patientId);
+  return record ? record.data : null;
+};
+
+

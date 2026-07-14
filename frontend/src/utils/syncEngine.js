@@ -1,5 +1,5 @@
 import api from '../api';
-import { getPendingTasks, updateTaskStatus, removeTask, addSyncHistory } from './offlineStore';
+import { getPendingTasks, updateTaskStatus, removeTask, addSyncHistory, getCachedPatients, cachePatients, cacheDashboardStats } from './offlineStore';
 import toast from 'react-hot-toast';
 import { encryptField, decryptField, decryptPatientData } from './cryptoUtils';
 
@@ -22,6 +22,13 @@ export const processSyncQueue = async () => {
   
   let successCount = 0;
   let failCount = 0;
+  const idMap = new Map(); // Maps offline_xxx IDs to actual MongoDB _ids
+
+  // Sort tasks to ensure CREATE_PATIENT comes first (usually already in order, but just in case)
+  pendingTasks.sort((a, b) => {
+    const order = { 'CREATE_PATIENT': 1, 'CREATE_SCREENING': 2, 'CREATE_FOLLOWUP': 3, 'CREATE_EMERGENCY': 4 };
+    return (order[a.type] || 99) - (order[b.type] || 99);
+  });
 
   for (let i = 0; i < pendingTasks.length; i++) {
     const task = pendingTasks[i];
@@ -30,7 +37,6 @@ export const processSyncQueue = async () => {
       syncProgressCallback({ current: i + 1, total: pendingTasks.length });
     }
 
-    // Skip tasks that failed too many times in this session, wait for next reconnect/reload
     if (task.status === 'FAILED' && task.retryCount > 3) {
       continue;
     }
@@ -42,9 +48,20 @@ export const processSyncQueue = async () => {
       let method = 'post';
       let payloadToSync = { ...task.payload };
 
-      // Decrypt any encrypted fields before sending to the backend
+      // Swap any offline IDs with their real MongoDB IDs
+      if (payloadToSync.patientId && idMap.has(payloadToSync.patientId)) {
+        payloadToSync.patientId = idMap.get(payloadToSync.patientId);
+      }
+      if (payloadToSync.patient && idMap.has(payloadToSync.patient)) {
+        payloadToSync.patient = idMap.get(payloadToSync.patient);
+      }
+
       if (task.type === 'CREATE_PATIENT' || task.type === 'UPDATE_PATIENT') {
         payloadToSync = decryptPatientData(payloadToSync);
+        // The backend doesn't expect _id or _isOffline during creation
+        delete payloadToSync._id;
+        delete payloadToSync._isOffline;
+        delete payloadToSync.createdAt;
       }
 
       switch (task.type) {
@@ -53,6 +70,10 @@ export const processSyncQueue = async () => {
           break;
         case 'CREATE_SCREENING':
           endpoint = '/analyze';
+          // Clean up mock offline fields from screening payload
+          delete payloadToSync._id;
+          delete payloadToSync.result; 
+          delete payloadToSync.createdAt;
           break;
         case 'CREATE_FOLLOWUP':
           endpoint = '/follow-ups';
@@ -66,16 +87,25 @@ export const processSyncQueue = async () => {
 
       const response = await api[method](endpoint, payloadToSync);
 
-      // On success, mark as synced and remove from queue
+      // Mapping offline IDs to Real IDs
+      if (task.type === 'CREATE_PATIENT' && task.payload._id && task.payload._id.startsWith('offline_')) {
+        const realId = response.data._id;
+        idMap.set(task.payload._id, realId);
+        
+        // Remove the offline mock patient from cache, and save the real one
+        const cached = await getCachedPatients();
+        const cleanedCache = cached.filter(p => p._id !== task.payload._id);
+        cleanedCache.push(response.data);
+        await cachePatients(cleanedCache);
+      }
+
       await removeTask(task.id);
       await addSyncHistory(task, 'SUCCESS', 'Synchronized successfully');
       successCount++;
 
-      // Dispatch specific notifications
       if (task.type === 'CREATE_PATIENT') {
         toast.success('Patient synchronized successfully.', { id: `sync-${task.id}` });
       } else if (task.type === 'CREATE_SCREENING') {
-        // Since backend triggers AI and Cardano natively, we show a combined success message
         toast.success('Screening synchronized. AI analysis & Blockchain verification completed.', { duration: 5000, id: `sync-${task.id}` });
       }
 
@@ -100,10 +130,23 @@ export const processSyncQueue = async () => {
 
   isSyncing = false;
   if (syncProgressCallback) {
-    syncProgressCallback(null); // Clear progress
+    syncProgressCallback(null);
   }
 
   if (successCount > 0) {
     toast.success(`Synchronization completed. ${successCount} records synced.`);
+    // Fetch and cache updated dashboard stats and other core data
+    try {
+      const statsRes = await api.get('/dashboard/stats');
+      await cacheDashboardStats(statsRes.data);
+      
+      const patientsRes = await api.get('/patients');
+      await cachePatients(patientsRes.data);
+      
+      // Note: other caches like screenings, alerts, followups are 
+      // generally refreshed when the user navigates to those pages.
+    } catch(err) {
+      console.warn('Failed to refresh data caches after sync', err);
+    }
   }
 };

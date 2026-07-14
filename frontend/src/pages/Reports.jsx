@@ -9,6 +9,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useTranslation } from 'react-i18next';
 
+import { getCachedReports, cacheReports } from '../utils/offlineStore';
+
 export default function Reports() {
   const { t } = useTranslation();
   const [reports, setReports] = useState([]);
@@ -17,15 +19,25 @@ export default function Reports() {
   const [selectedReport, setSelectedReport] = useState(null);
 
   useEffect(() => {
-    api.get('/reports')
-      .then(res => {
-        setReports(res.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        toast.error(t('reports.errLoad'));
+    if (navigator.onLine) {
+      api.get('/reports')
+        .then(async res => {
+          setReports(res.data);
+          await cacheReports(res.data);
+          setLoading(false);
+        })
+        .catch(async () => {
+          toast.error(t('reports.errLoad'));
+          const cached = await getCachedReports();
+          if (cached && cached.length > 0) setReports(cached);
+          setLoading(false);
+        });
+    } else {
+      getCachedReports().then(cached => {
+        if (cached && cached.length > 0) setReports(cached);
         setLoading(false);
       });
+    }
   }, [t]);
 
   const downloadPDF = (report) => {

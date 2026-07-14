@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import MobileHeader from '../components/MobileHeader';
 import { useTranslation } from 'react-i18next';
-import { getCachedPatientById } from '../utils/offlineStore';
+import { getCachedPatientById, getCachedPatientProfile, cachePatientProfile, getCachedScreeningsByPatient, cacheScreenings, cacheFollowUps, getCachedFollowUps } from '../utils/offlineStore';
 
 export default function PatientProfile() {
   const { id } = useParams();
@@ -34,12 +34,13 @@ export default function PatientProfile() {
         // Fetch patient data
         let patientData = null;
         try {
-          if (!navigator.onLine) throw new Error('Offline');
+          if (!navigator.onLine || id.startsWith('offline_')) throw new Error('Offline');
           const patientRes = await api.get(`/patients/${id}`);
           patientData = patientRes.data;
+          await cachePatientProfile(id, patientData);
         } catch (err) {
           if (err.message !== 'Offline') console.error('Failed to fetch patient data', err);
-          patientData = await getCachedPatientById(id);
+          patientData = await getCachedPatientProfile(id) || await getCachedPatientById(id);
         }
 
         if (!patientData) {
@@ -52,25 +53,30 @@ export default function PatientProfile() {
 
         // Fetch historical screenings for the timeline
         try {
-          if (!navigator.onLine) throw new Error('Offline');
+          if (!navigator.onLine || id.startsWith('offline_')) throw new Error('Offline');
           const screeningsRes = await api.get(`/analyze/${id}`);
           setScreenings(screeningsRes.data);
+          await cacheScreenings(screeningsRes.data);
         } catch (err) {
           if (err.message !== 'Offline') console.error('Failed to fetch screenings', err);
-          setScreenings([]);
+          const cachedScreenings = await getCachedScreeningsByPatient(id);
+          setScreenings(cachedScreenings || []);
         }
 
         try {
-          if (!navigator.onLine) throw new Error('Offline');
+          if (!navigator.onLine || id.startsWith('offline_')) throw new Error('Offline');
           const followUpsRes = await api.get(`/followups/patient/${id}`);
           setFollowUps(followUpsRes.data);
+          await cacheFollowUps(followUpsRes.data);
         } catch (err) {
-          console.error('Failed to fetch follow-ups', err);
-          setFollowUps([]);
+          if (err.message !== 'Offline') console.error('Failed to fetch follow-ups', err);
+          const allFollowUps = await getCachedFollowUps();
+          const patientFollowUps = (allFollowUps || []).filter(f => f.patientId === id);
+          setFollowUps(patientFollowUps);
         }
 
         try {
-          if (!navigator.onLine) throw new Error('Offline');
+          if (!navigator.onLine || id.startsWith('offline_')) throw new Error('Offline');
           const emergencyRes = await api.get(`/emergency/patient/${id}`);
           setEmergencies(emergencyRes.data);
         } catch (err) {
@@ -80,7 +86,7 @@ export default function PatientProfile() {
 
         if (patientData.familyId) {
           try {
-            if (!navigator.onLine) throw new Error('Offline');
+            if (!navigator.onLine || id.startsWith('offline_')) throw new Error('Offline');
             const familyRes = await api.get(`/family/${patientData.familyId}`);
             setFamilyData(familyRes.data);
           } catch (err) {
