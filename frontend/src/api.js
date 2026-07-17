@@ -2,10 +2,19 @@ import axios from 'axios';
 
 
 const normalizeApiBaseUrl = (url) => {
-  const trimmed = (url || '').replace(/\/$/, '');
+  let trimmed = (url || '').replace(/\/$/, '');
 
+  // If no URL is provided, fall back to Render
   if (!trimmed) {
     return 'https://swasthya-ai-backend-tjvn.onrender.com/api';
+  }
+
+  // If the URL contains localhost, and the user is accessing via a local network IP, dynamically replace localhost
+  if (trimmed.includes('localhost') || trimmed.includes('127.0.0.1')) {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      trimmed = trimmed.replace(/localhost|127\.0\.0\.1/, hostname);
+    }
   }
 
   return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;

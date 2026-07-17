@@ -6,6 +6,11 @@ const Screening = require('../models/Screening');
 // GET /api/public/patient/:id
 router.get('/patient/:id', async (req, res) => {
   try {
+    // Check if it's a valid MongoDB ObjectId
+    if (!req.params.id || !req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(404).json({ error: 'Patient not found or not yet synchronized' });
+    }
+
     const patient = await Patient.findById(req.params.id).populate('worker', 'name');
     if (!patient) {
       return res.status(404).json({ error: 'Patient not found' });

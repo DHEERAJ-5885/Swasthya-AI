@@ -14,6 +14,11 @@ export default function QRCodeModal({ patient, isOpen, onClose }) {
     const loadQr = async () => {
       if (!(isOpen && patient)) return;
 
+      // Do not generate a public QR code if the patient hasn't been synced to the cloud yet.
+      if (patient._id && patient._id.startsWith('offline_')) {
+        return; // Handled in the render block
+      }
+
       try {
         const screeningsRes = await api.get(`/analyze/${patient._id}`);
         const latest = screeningsRes.data?.[screeningsRes.data.length - 1] || null;
@@ -104,39 +109,50 @@ export default function QRCodeModal({ patient, isOpen, onClose }) {
                 </button>
               </div>
 
-              <div className="bg-slate-50 p-6 rounded-xl mb-4 flex justify-center">
-                {qrUrl ? (
-                  <img src={qrUrl} alt="QR Code" className="w-64 h-64" />
-                ) : (
-                  <div className="w-64 h-64 bg-slate-200 rounded flex items-center justify-center">
-                    <p className="text-slate-500">Generating...</p>
+              {patient._id && patient._id.startsWith('offline_') ? (
+                <div className="bg-amber-50 border border-amber-200 p-6 rounded-xl mb-4 text-center">
+                  <p className="text-amber-800 font-semibold mb-2">Offline Patient</p>
+                  <p className="text-amber-700 text-sm">
+                    This patient has not been synchronized with the cloud yet. Please connect to the internet and sync the app to generate a Public Health Card QR Code.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-slate-50 p-6 rounded-xl mb-4 flex justify-center">
+                    {qrUrl ? (
+                      <img src={qrUrl} alt="QR Code" className="w-64 h-64" />
+                    ) : (
+                      <div className="w-64 h-64 bg-slate-200 rounded flex items-center justify-center">
+                        <p className="text-slate-500">Generating...</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-slate-700">
-                  <span className="font-semibold">Patient:</span> {patient.name}
-                </p>
-                <p className="text-sm text-slate-700">
-                  <span className="font-semibold">Family ID:</span> {patient.familyId || 'N/A'}
-                </p>
-                <p className="text-sm text-slate-700">
-                  <span className="font-semibold">Village:</span> {patient.village}
-                </p>
-                <p className="text-sm text-slate-700">
-                  <span className="font-semibold">Health Score:</span> {latestScore !== null ? latestScore : 'N/A'}
-                </p>
-              </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-slate-700">
+                      <span className="font-semibold">Patient:</span> {patient.name}
+                    </p>
+                    <p className="text-sm text-slate-700">
+                      <span className="font-semibold">Family ID:</span> {patient.familyId || 'N/A'}
+                    </p>
+                    <p className="text-sm text-slate-700">
+                      <span className="font-semibold">Village:</span> {patient.village}
+                    </p>
+                    <p className="text-sm text-slate-700">
+                      <span className="font-semibold">Health Score:</span> {latestScore !== null ? latestScore : 'N/A'}
+                    </p>
+                  </div>
 
-              <button
-                onClick={downloadQR}
-                disabled={!qrUrl}
-                className="w-full bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Download className="w-4 h-4" />
-                Download QR Code
-              </button>
+                  <button
+                    onClick={downloadQR}
+                    disabled={!qrUrl}
+                    className="w-full bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download QR Code
+                  </button>
+                </>
+              )}
             </motion.div>
           </>
         )}
