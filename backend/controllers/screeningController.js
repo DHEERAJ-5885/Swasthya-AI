@@ -144,14 +144,16 @@ const createScreening = async (req, res) => {
     
     // 3. Asynchronously submit to Cardano (fire-and-forget)
     if (screening.verification && screening.verification.recordHash) {
-      // Enforce idempotency: prevent duplicate transaction if already pending, verified or txHash exists
+      console.log('Screening has recordHash:', screening.verification.recordHash);
       if (!screening.verification.txHash && screening.verification.status !== 'VERIFIED') {
+        console.log('Attempting to anchor to Cardano...');
         const cardanoService = require('../../SmartContract/services/cardanoService');
         const screeningId = screening._id;
         
         // Fire and forget closure
         (async () => {
           try {
+            console.log('Background task started for screening:', screeningId);
             // Update status to PENDING before submission
             await Screening.updateOne(
               { _id: screeningId }, 
@@ -159,9 +161,12 @@ const createScreening = async (req, res) => {
             );
 
             // Submit transaction
+            console.log('Calling cardanoService.anchorHealthRecord...');
             const result = await cardanoService.anchorHealthRecord(screening.verification.recordHash);
+            console.log('Cardano anchor result:', result);
             
             if (result.success) {
+              console.log('Anchor success! txHash:', result.txHash);
               // Update with returned txHash (still PENDING)
               await Screening.updateOne(
                 { _id: screeningId }, 
@@ -174,7 +179,9 @@ const createScreening = async (req, res) => {
               );
 
               // Wait for confirmation on-chain
+              console.log('Waiting for tx confirmation...');
               const isConfirmed = await cardanoService.awaitTxConfirmation(result.txHash);
+              console.log('Tx confirmation result:', isConfirmed);
               
               if (isConfirmed) {
                 // Permanently verify
@@ -186,17 +193,24 @@ const createScreening = async (req, res) => {
                     } 
                   }
                 );
+                console.log('Verified successfully!');
+              } else {
+                console.log('Tx confirmation failed (returned false). Setting to FAILED.');
+                await Screening.updateOne(
+                  { _id: screeningId }, 
+                  { $set: { "verification.status": "FAILED" } }
+                );
               }
             } else {
               // Revert on failure
-              console.error('Cardano submission failed:', result.error);
+              console.error('Cardano submission failed in controller:', result.error);
               await Screening.updateOne(
                 { _id: screeningId }, 
                 { $set: { "verification.status": "FAILED" } }
               );
             }
           } catch (bgError) {
-            console.error('Background Cardano error:', bgError.message);
+            console.error('Background Cardano error caught in controller:', bgError);
             await Screening.updateOne(
               { _id: screeningId }, 
               { $set: { "verification.status": "FAILED" } }
