@@ -1,0 +1,5 @@
+export const DEMO_ACCOUNT = {
+  EMPLOYEE_ID: 'ASHA-2345',
+  PHONE: '0738652680',
+  PASSWORD: '58852678'
+};

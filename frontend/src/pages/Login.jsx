@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import authBg from '../assets/auth-bg.png';
 import { useTranslation } from 'react-i18next';
+import { DEMO_ACCOUNT } from '../config/demoConstants';
 
 // Input Field Component
 const InputField = React.forwardRef(({ label, icon: Icon, error, ...props }, ref) => (
@@ -81,6 +82,7 @@ export default function Login() {
   const { t } = useTranslation();
   const [mode, setMode] = useState('login');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
 
   const { register, handleSubmit, formState: { errors }, watch, setValue, clearErrors } = useForm({
@@ -172,10 +174,22 @@ export default function Login() {
   };
 
   const loadDemo = () => {
-    setValue('employeeId', 'ASH-001');
-    setValue('phone', '9876543210');
-    setValue('password', 'password123');
-    toast.success(t('auth.demoLoaded'));
+    setDemoLoading(true);
+    
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setValue('employeeId', DEMO_ACCOUNT.EMPLOYEE_ID);
+      setValue('phone', DEMO_ACCOUNT.PHONE);
+      setValue('password', DEMO_ACCOUNT.PASSWORD);
+      
+      setDemoLoading(false);
+      toast.success("Demo account loaded successfully. Click Sign In to continue.");
+      
+      // Auto login after a short delay
+      setTimeout(() => {
+        handleSubmit(onSubmit)();
+      }, 800);
+    }, 600);
   };
 
   return (
@@ -450,19 +464,47 @@ export default function Login() {
                   {t('auth.googleSignIn')}
                 </button>
 
-                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 mt-6 group hover:bg-primary/10 transition-colors">
+                <div className="p-5 bg-primary/5 rounded-2xl border border-primary/10 mt-6 transition-colors">
                   <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{t('auth.demoAccess')}</span>
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <span className="text-sm font-bold text-primary">Demo Account</span>
                   </div>
-                  <button 
+                  <p className="text-xs text-slate-500 mb-4">
+                    Explore the complete Swasthya AI platform using our pre-configured ASHA Worker account.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-5">
+                    {[
+                      'Patient Registration', 'AI Health Screening', 
+                      'AI Risk Prediction', 'Analytics Dashboard',
+                      'Cardano Blockchain Verification', 'Offline Sync',
+                      'QR Health Card', 'Reports & Alerts'
+                    ].map((feature, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-primary/70 flex-shrink-0" />
+                        <span className="text-[10px] font-semibold text-slate-600 leading-tight">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button 
                     type="button"
                     onClick={loadDemo}
-                    className="w-full text-left text-sm font-semibold text-slate-600 group-hover:text-primary transition-colors flex items-center justify-between"
+                    disabled={demoLoading || loading}
+                    className="w-full h-11 rounded-xl bg-white border border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/40 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
                   >
-                    {t('auth.loadDemo')}
-                    <CheckCircle2 className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
+                    {demoLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading Demo Account...
+                      </>
+                    ) : (
+                      <>
+                        Load Demo Account
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             )}
